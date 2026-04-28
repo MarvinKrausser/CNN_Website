@@ -16,13 +16,14 @@ class Bird_CNN(nn.Module):
 
             nn.Conv2d(c_hidden, c_hidden, kernel_size, padding=kernel_size//2),
             nn.ReLU(),
+
             nn.Flatten(),
             nn.Linear(c_hidden * img_height * img_width, c_out)
         )
 
     def forward(self, x):
         return self.model(x)
-    
+
 
 def trainCNN(model, optimizer, loss_module, train_data_loader, validation_data_loader, device, num_epochs, SAVE_PATH, save=False):
 

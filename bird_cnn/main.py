@@ -10,6 +10,7 @@ from enum import Enum
 from PIL import Image
 
 SAVE_PATH = "./saved_models"
+#IMAGE_SIZE = (1141, 850)
 IMAGE_SIZE = (300, 300)
 
 class bird_species(Enum):
@@ -28,11 +29,10 @@ transform = transforms.Compose([
 
 dataset = datasets.ImageFolder("data/train", transform=transform)
 
-train_size = int(0.3 * len(dataset))
-val_size = int(len(dataset) * 0.3)
-throw_away = len(dataset) - val_size - train_size
+train_size = int(0.8 * len(dataset))
+val_size = len(dataset) - train_size
 
-train_dataset, val_dataset, _ = random_split(dataset, [train_size, val_size, throw_away])
+train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
@@ -48,7 +48,7 @@ loss_module = nn.CrossEntropyLoss()
 trainCNN(model, optimizer, loss_module, train_loader, val_loader, device, 50, SAVE_PATH=SAVE_PATH, save=True)
 exit()
 
-image_path = "test.jpg"
+image_path = "test1.jpg"
 
 image = Image.open(image_path).convert("RGB")
 image = transform(image)
