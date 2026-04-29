@@ -4,7 +4,7 @@ import './Bird_CNN.css'
 function Bird_CNN() {
     const apiUrl = process.env.NODE_ENV === "development"
         ? "http://127.0.0.1:8000"
-        : "https://api.myapp.com";
+        : "http://134.60.154.7:8000";
 
     const [file, setFile] = useState(null);
     const [birdClass, setBirdClass] = useState(null);
