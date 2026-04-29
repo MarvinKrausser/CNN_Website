@@ -10,8 +10,7 @@ from enum import Enum
 from PIL import Image
 
 SAVE_PATH = "./saved_models"
-#IMAGE_SIZE = (1141, 850)
-IMAGE_SIZE = (300, 300)
+IMAGE_SIZE = 256
 
 class bird_species(Enum):
     Common_Kingfisher = 0
@@ -24,6 +23,7 @@ class bird_species(Enum):
 
 transform = transforms.Compose([
     transforms.Resize(IMAGE_SIZE),
+    transforms.CenterCrop(IMAGE_SIZE),
     transforms.ToTensor()
 ])
 
@@ -34,13 +34,13 @@ val_size = len(dataset) - train_size
 
 train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
-train_loader = DataLoader(train_dataset, batch_size=26, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=26, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False)
 
 device = torch.device("cpu") if not torch.cuda.is_available() else torch.device("cuda:0")
 print("Using device", device)
 
-model = Bird_CNN(c_in=3, c_hidden=15, c_out=7)
+model = Bird_CNN(c_in=3, c_hidden=32, c_out=7)
 model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
 loss_module = nn.CrossEntropyLoss()

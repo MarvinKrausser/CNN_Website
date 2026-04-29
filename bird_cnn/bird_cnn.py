@@ -32,42 +32,44 @@ class Bird_CNN(nn.Module):
         self.conv_init = nn.Sequential(
             nn.Conv2d(c_in, c_hidden, kernel_size=3, padding=1),
             nn.BatchNorm2d(c_hidden),
-            nn.ReLU(),
-            nn.Conv2d(c_hidden, c_hidden, 3, stride=2, padding=1)
-        )
-
-        # 1x1 conv branch
-        self.branch1 = SeparableConvolution(c_in=c_hidden, c_out=64, kernel_size=1)
-
-        # 1x1 -> 3x3 conv branch
-        self.branch2 = SeparableConvolution(c_in=c_hidden, c_out=128, kernel_size=3)
-
-        # 1x1 -> 5x5 conv branch
-        self.branch3 = SeparableConvolution(c_in=c_hidden, c_out=32, kernel_size=5)
-
-        # 3x3 max pooling -> 1x1 conv branch
-        self.branch4 = nn.Sequential(
-            nn.MaxPool2d(kernel_size=3, stride=1, padding=1),
-            nn.Conv2d(c_hidden, 32, kernel_size=1),
             nn.ReLU()
         )
 
+        self.conv_1 = SeparableConvolution(c_in=c_hidden, c_out=c_hidden*2, kernel_size=3)
+        self.conv_skip_1 = nn.Sequential(
+            nn.Conv2d(c_hidden, c_hidden*2, 1),
+            nn.BatchNorm2d(c_hidden*2)
+        )
+
+        self.conv_2 = SeparableConvolution(c_in=c_hidden*2, c_out=c_hidden*4, kernel_size=3)
+        self.conv_skip_2 = nn.Sequential(
+            nn.Conv2d(c_hidden*2, c_hidden*4, 1),
+            nn.BatchNorm2d(c_hidden*4)
+        )
+
+        self.conv_3 = SeparableConvolution(c_in=c_hidden*4, c_out=c_hidden*8, kernel_size=3)
+        self.conv_skip_3 = nn.Sequential(
+            nn.Conv2d(c_hidden*4, c_hidden*8, 1),
+            nn.BatchNorm2d(c_hidden*8)
+        )
+
+        self.conv_4 = SeparableConvolution(c_in=c_hidden*8, c_out=c_hidden*16, kernel_size=3)
+
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.flatten = nn.Flatten()
-        self.linear = nn.Linear(256, c_out)
+        self.linear = nn.Linear(c_hidden*16, c_out)
 
         self.dropout = nn.Dropout(0.3)
 
     def forward(self, x):
         x = self.conv_init(x)
 
-        b1 = self.branch1(x)
-        b2 = self.branch2(x)
-        b3 = self.branch3(x)
-        b4 = self.branch4(x)
+        x = F.relu(self.conv_skip_1(x) + self.conv_1(x))
+        x = F.relu(self.conv_skip_2(x) + self.conv_2(x))
+        x = F.relu(self.conv_skip_3(x) + self.conv_3(x))
 
-        x = torch.cat([b1, b2, b3, b4], dim=1)
-        x = F.relu(x)
+        x = self.conv_4(x)
+
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
 
