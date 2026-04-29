@@ -12,7 +12,9 @@ function App() {
 
   return (
     <>
-      <Menu />
+      <div className='menu-bar'>
+        <Menu />
+      </div>
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/bird_cnn" element={<Bird_CNN />} />

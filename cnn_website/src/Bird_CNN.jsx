@@ -1,18 +1,29 @@
 import { useState } from 'react'
+import { useRef } from "react";
 import './Bird_CNN.css'
 
 function Bird_CNN() {
     const apiUrl = process.env.NODE_ENV === "development"
-        ? "http://127.0.0.1:8000"
+        ? "http://134.60.154.7:8000"
         : "http://134.60.154.7:8000";
+
+    const boxRef = useRef(null);
 
     const [file, setFile] = useState(null);
     const [birdClass, setBirdClass] = useState(null);
     const [confidence, setConfidence] = useState(null);
     const [error, setError] = useState(false);
+    const [preview, setPreview] = useState(null);
 
     const handleImage = (e) => {
         setFile(e.target.files[0]);
+
+        if (e.target.files[0]) {
+            setPreview(URL.createObjectURL(e.target.files[0]));
+            boxRef.current.classList.add("active");
+        }
+        setConfidence(null);
+        setBirdClass(null);
     };
 
     const sendImage = async (e) => {
@@ -46,10 +57,30 @@ function Bird_CNN() {
 
     return (
         <>
-            <h1>bird-cnn</h1>
-            <div>
-                <input type="file" accept="image/jpeg" onChange={handleImage} />
-                <button onClick={sendImage}>Upload</button>
+            <div id='background'></div>
+            <div className='site-content'>
+                <h1 id='site-headline'>Bird Species Expert</h1>
+                <div className='input-box'>
+                    <input type="file" id='fileUpload' accept="image/jpeg" onChange={handleImage} style={{ display: "none" }} />
+                    <label htmlFor="fileUpload" className="custom-button">
+                        Choose an image
+                    </label>
+                    <button id='button-send' onClick={sendImage} style={{ display: "none" }} />
+                    <label htmlFor="button-send" className="custom-button">
+                        Ask Expert
+                    </label>
+
+                </div>
+
+                <div ref={boxRef} className='image-box'>
+                    {preview && (
+                        <img
+                            src={preview}
+                            alt="preview"
+                            style={{ height: "300px", border: "1px solid black" }}
+                        />
+                    )}
+                </div>
 
 
                 <div className='response-block'>

@@ -1,4 +1,12 @@
 #navbar-main {
+    width: 90%;
+    height: 80px;
     display: flex;
     gap: 20px;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(33, 122, 194);
+    border: 1px solid black;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
