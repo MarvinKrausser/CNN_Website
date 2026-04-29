@@ -3,6 +3,11 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
+# Install system dependencies (optional but common)
+RUN apt-get update && apt-get install -y \
+    bash \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy requirements first (better Docker layer caching)
 COPY . .
 
