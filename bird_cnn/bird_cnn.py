@@ -23,59 +23,49 @@ class  SeparableConvolution(nn.Module):
         x = F.relu(x)
 
         return x
+    
+class SkipBlock(nn.Module):
+    def __init__(self, c_in, c_out, kernel_size=3):
+        super().__init__()
+        self.conv = SeparableConvolution(c_in=c_in, c_out=c_out, kernel_size=kernel_size)
+        self.conv_skip = nn.Sequential(
+            nn.Conv2d(c_in, c_out, 1),
+            nn.BatchNorm2d(c_out)
+        )
+
+    def forward(self, x):
+        return(F.relu(self.conv_skip(x) + self.conv(x)))
 
 
 class Bird_CNN(nn.Module):
     def __init__(self, c_in, c_hidden, c_out):
         super().__init__()
 
-        self.conv_init = nn.Sequential(
+        self.model = nn.Sequential(
             nn.Conv2d(c_in, c_hidden, kernel_size=3, padding=1),
             nn.BatchNorm2d(c_hidden),
-            nn.ReLU()
+            nn.ReLU(),
+
+            SkipBlock(c_in=c_hidden, c_out=c_hidden),
+            SkipBlock(c_in=c_hidden, c_out=c_hidden),
+            SkipBlock(c_in=c_hidden, c_out=c_hidden),
+            SkipBlock(c_in=c_hidden, c_out=c_hidden),
+
+            SkipBlock(c_in=c_hidden, c_out=c_hidden*2),
+            SkipBlock(c_in=c_hidden*2, c_out=c_hidden*2),
+            SkipBlock(c_in=c_hidden*2, c_out=c_hidden*2),
+            SkipBlock(c_in=c_hidden*2, c_out=c_hidden*2),
+
+            SeparableConvolution(c_in=c_hidden*2, c_out=c_hidden*4, kernel_size=3),
+
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Flatten(),
+            nn.Linear(c_hidden*4, c_out),
+            nn.Dropout(0.3)
         )
-
-        self.conv_1 = SeparableConvolution(c_in=c_hidden, c_out=c_hidden*2, kernel_size=3)
-        self.conv_skip_1 = nn.Sequential(
-            nn.Conv2d(c_hidden, c_hidden*2, 1),
-            nn.BatchNorm2d(c_hidden*2)
-        )
-
-        self.conv_2 = SeparableConvolution(c_in=c_hidden*2, c_out=c_hidden*4, kernel_size=3)
-        self.conv_skip_2 = nn.Sequential(
-            nn.Conv2d(c_hidden*2, c_hidden*4, 1),
-            nn.BatchNorm2d(c_hidden*4)
-        )
-
-        self.conv_3 = SeparableConvolution(c_in=c_hidden*4, c_out=c_hidden*8, kernel_size=3)
-        self.conv_skip_3 = nn.Sequential(
-            nn.Conv2d(c_hidden*4, c_hidden*8, 1),
-            nn.BatchNorm2d(c_hidden*8)
-        )
-
-        self.conv_4 = SeparableConvolution(c_in=c_hidden*8, c_out=c_hidden*16, kernel_size=3)
-
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.flatten = nn.Flatten()
-        self.linear = nn.Linear(c_hidden*16, c_out)
-
-        self.dropout = nn.Dropout(0.3)
 
     def forward(self, x):
-        x = self.conv_init(x)
-
-        x = F.relu(self.conv_skip_1(x) + self.conv_1(x))
-        x = F.relu(self.conv_skip_2(x) + self.conv_2(x))
-        x = F.relu(self.conv_skip_3(x) + self.conv_3(x))
-
-        x = self.conv_4(x)
-
-        x = self.avgpool(x)
-        x = torch.flatten(x, 1)
-
-        x = self.dropout(x)
-
-        return self.linear(x)
+        return self.model(x)
 
 
 def trainCNN(model, optimizer, loss_module, train_data_loader, validation_data_loader, device, num_epochs, SAVE_PATH, save=False):
