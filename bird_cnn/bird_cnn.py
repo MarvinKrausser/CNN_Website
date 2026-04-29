@@ -3,26 +3,77 @@ import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
 from tqdm import tqdm
+
+class  SeparableConvolution(nn.Module):
+    def __init__(self, c_in, c_out, kernel_size):
+        super().__init__()
+        self.depthwise = nn.Conv2d(c_in, c_in, kernel_size, groups=c_in, padding=kernel_size//2)
+        self.bn1 = nn.BatchNorm2d(c_in)
+        self.pointwise = nn.Conv2d(c_in, c_out, kernel_size=1)
+        self.bn2 = nn.BatchNorm2d(c_out)
+
+    def forward(self, x):
+        x = self.depthwise(x)
+        x = self.bn1(x)
+        x = F.relu(x)
+
+        x = self.pointwise(x)
+        x = self.bn2(x)
+        x = F.relu(x)
+
+        return x
 
 
 class Bird_CNN(nn.Module):
-    def __init__(self, c_in, c_hidden, c_out, kernel_size, img_width, img_height):
+    def __init__(self, c_in, c_hidden, c_out):
         super().__init__()
-        self.model = nn.Sequential(
-            nn.Conv2d(c_in, c_hidden, kernel_size, padding=kernel_size//2),
-            nn.ReLU(),
 
-            nn.Conv2d(c_hidden, c_hidden, kernel_size, padding=kernel_size//2),
+        self.conv_init = nn.Sequential(
+            nn.Conv2d(c_in, c_hidden, kernel_size=3, padding=1),
+            nn.BatchNorm2d(c_hidden),
             nn.ReLU(),
-
-            nn.Flatten(),
-            nn.Linear(c_hidden * img_height * img_width, c_out)
+            nn.Conv2d(c_hidden, c_hidden, 3, stride=2, padding=1)
         )
 
+        # 1x1 conv branch
+        self.branch1 = SeparableConvolution(c_in=c_hidden, c_out=64, kernel_size=1)
+
+        # 1x1 -> 3x3 conv branch
+        self.branch2 = SeparableConvolution(c_in=c_hidden, c_out=128, kernel_size=3)
+
+        # 1x1 -> 5x5 conv branch
+        self.branch3 = SeparableConvolution(c_in=c_hidden, c_out=32, kernel_size=5)
+
+        # 3x3 max pooling -> 1x1 conv branch
+        self.branch4 = nn.Sequential(
+            nn.MaxPool2d(kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(c_hidden, 32, kernel_size=1),
+            nn.ReLU()
+        )
+
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.flatten = nn.Flatten()
+        self.linear = nn.Linear(256, c_out)
+
+        self.dropout = nn.Dropout(0.3)
+
     def forward(self, x):
-        return self.model(x)
+        x = self.conv_init(x)
+
+        b1 = self.branch1(x)
+        b2 = self.branch2(x)
+        b3 = self.branch3(x)
+        b4 = self.branch4(x)
+
+        x = torch.cat([b1, b2, b3, b4], dim=1)
+        x = F.relu(x)
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+
+        x = self.dropout(x)
+
+        return self.linear(x)
 
 
 def trainCNN(model, optimizer, loss_module, train_data_loader, validation_data_loader, device, num_epochs, SAVE_PATH, save=False):
@@ -79,7 +130,7 @@ def trainCNN(model, optimizer, loss_module, train_data_loader, validation_data_l
             save_dir = os.path.join(SAVE_PATH, "bird_cnn")
             os.makedirs(save_dir, exist_ok=True)
 
-            save_path = os.path.join(save_dir, "bird_cnn")
+            save_path = os.path.join(save_dir, f"bird_cnn{epoch+1}")
             torch.save(model.state_dict(), save_path)
 
         print(f"epoch: {epoch+1} | train accuracy: {int(train_acc * 1000) / 10}% | validation accuracy: {int(val_acc * 1000) / 10}%")

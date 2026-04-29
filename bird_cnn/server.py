@@ -4,6 +4,7 @@ import os
 import torch
 from torchvision import transforms
 from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
 import torch.nn.functional as F
@@ -42,6 +43,18 @@ model.to(device)
 model.eval()
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
