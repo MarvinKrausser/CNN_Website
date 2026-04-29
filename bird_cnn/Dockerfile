@@ -20,4 +20,4 @@ RUN pip install torch torchvision torchaudio --index-url https://download.pytorc
 RUN chmod +x start_server.sh
 
 # Use the script as the container entrypoint
-ENTRYPOINT ["./start_server.sh"]
+ENTRYPOINT ["bash", "./start_server.sh"]
