@@ -2,6 +2,9 @@ import { useState } from 'react'
 import './Bird_CNN.css'
 
 function Bird_CNN() {
+    const apiUrl = process.env.NODE_ENV === "development"
+        ? "http://127.0.0.1:8000"
+        : "https://api.myapp.com";
 
     const [file, setFile] = useState(null);
     const [birdClass, setBirdClass] = useState(null);
@@ -19,7 +22,7 @@ function Bird_CNN() {
         formData.append("file", file);
 
         try {
-            const response = await fetch("http://127.0.0.1:8000/predict", {
+            const response = await fetch(`${apiUrl}/predict`, {
                 method: "POST",
                 body: formData,
             });

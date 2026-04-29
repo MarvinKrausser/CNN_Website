@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 from bird_cnn import Bird_CNN
 
-SAVE_PATH = "./saved_models"
+BUILD_PATH = "./build_models"
 #IMAGE_SIZE = (1141, 850)
 IMAGE_SIZE = (300, 300)
 
@@ -36,8 +36,8 @@ transform = transforms.Compose([
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model = Bird_CNN(c_in=3, c_hidden=15, c_out=7, kernel_size=3, img_width=IMAGE_SIZE[0], img_height=IMAGE_SIZE[1])
-full_path = os.path.join(SAVE_PATH, "bird_cnn", "bird_cnn")
+model = Bird_CNN(c_in=3, c_hidden=15, c_out=7)
+full_path = os.path.join(BUILD_PATH, "bird_cnn")
 model.load_state_dict(torch.load(full_path, weights_only=False))
 model.to(device)
 model.eval()
