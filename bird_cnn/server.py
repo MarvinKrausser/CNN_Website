@@ -11,8 +11,12 @@ import torch.nn.functional as F
 
 from bird_cnn import Bird_CNN
 
+import threading
+
 BUILD_PATH = "./build_models"
 IMAGE_SIZE = 256
+
+sem = threading.Semaphore(1) #adjust to performance
 
 class bird_species(Enum):
     Common_Kingfisher = 0
@@ -53,17 +57,18 @@ app.add_middleware(
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    image_bytes = await file.read()
+    with sem:
+        image_bytes = await file.read()
 
-    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    image = transform(image).unsqueeze(0).to(device)
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        image = transform(image).unsqueeze(0).to(device)
 
-    with torch.no_grad():
-        pred = model(image)
-        probs = F.softmax(pred, dim=1)
-        confidence, cls = torch.max(probs, dim=1)
+        with torch.no_grad():
+            pred = model(image)
+            probs = F.softmax(pred, dim=1)
+            confidence, cls = torch.max(probs, dim=1)
 
-    return {
-        "class": bird_species(cls.item()).name,
-        "confidence": confidence.item()
-    }
+        return {
+            "class": bird_species(cls.item()).name,
+            "confidence": confidence.item()
+        }
