@@ -1,73 +1,77 @@
 .custom-button {
     height: 40px;
     padding: 10px 20px;
-    background: #333;
-    color: rgb(225, 225, 225);
+    background: rgb(25, 100, 126);
+    color: rgb(255, 255, 255);
     cursor: pointer;
-    border-radius: 6px;
-    border: 1px solid black;
+    border-radius: 20px;
+    border: 1px solid rgb(25, 100, 126);
+    user-select: none;
 }
 
 .custom-button:hover {
     border-color: white;
-    color: white;
 }
 
 .custom-button.inactive {
-    background: #333;
-    color: rgb(117, 117, 117);
+    opacity: 0.3;
     cursor: default;
 }
 
 .custom-button.inactive:hover {
-    border-color: black;
+    border-color: rgb(25, 100, 126);
 }
 
-.explanation-box a,
-span,
-p {
-    line-height: 1.7;
-    font-size: 17px;
+#site-headline {
+    margin-left: 100px;
+    margin-bottom: 50px;
+    color: rgb(47, 168, 208);
+    font-weight: bold;
+    font-size: 4rem;
+    position: relative;
+    width: fit-content;
+}
+
+#site-headline::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    height: 4px;
+    width: 100%;
+    border-radius: 20px;
+    background: rgb(47, 168, 208);
 }
 
 a {
-    color: rgb(0, 0, 0);
     text-decoration: none;
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid rgb(255, 255, 255);
     padding-bottom: 2px;
     transition: border-color 0.15s;
 }
 
 a:hover {
-    border-color: white;
+    border-color: #c59eff;
 }
 
 
 .explanation-box {
     flex: 1;
-    min-width: 0;
+    min-width: 300px;
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
     overflow: hidden;
-    border: 3px solid rgb(48, 62, 74);
-    margin: 50px;
-    padding: 50px;
     border-radius: 12px;
-    background: rgb(97, 125, 151);
+    margin: 180px 50px 0px 50px;
 }
 
 .image-box {
-    border: 2px solid black;
-    background: rgb(69, 69, 69);
     height: 400px;
-    width: 600px;
     margin-top: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.5);
     cursor: pointer;
 }
 
@@ -77,21 +81,12 @@ a:hover {
 
 .image-box img {
     border: 2px solid black;
-    border-Radius: 8px;
+    border-Radius: 10px;
 
-}
-
-.image-box:hover p {
-    color: white;
 }
 
 .image-box img:hover {
     border-color: white;
-}
-
-.image-box.active {
-    background: none;
-    border: none;
 }
 
 .content-block {
@@ -99,4 +94,42 @@ a:hover {
     align-items: center;
     gap: 20px;
     height: 40px;
+}
+
+/* HTML: <div class="loader"></div> */
+.loader {
+    width: 85px;
+    height: 25px;
+    --g1: conic-gradient(from 90deg at left 3px top 3px, #0000 90deg, #fff 0);
+    --g2: conic-gradient(from -90deg at bottom 3px right 3px, #0000 90deg, #fff 0);
+    background: var(--g1), var(--g1), var(--g1), var(--g2), var(--g2), var(--g2);
+    background-position: left, center, right;
+    background-repeat: no-repeat;
+    animation: l8 1s infinite;
+}
+
+@keyframes l8 {
+    0% {
+        background-size: 25px 100%, 25px 100%, 25px 100%
+    }
+
+    20% {
+        background-size: 25px 50%, 25px 100%, 25px 100%
+    }
+
+    40% {
+        background-size: 25px 50%, 25px 50%, 25px 100%
+    }
+
+    60% {
+        background-size: 25px 100%, 25px 50%, 25px 50%
+    }
+
+    80% {
+        background-size: 25px 100%, 25px 100%, 25px 50%
+    }
+
+    100% {
+        background-size: 25px 100%, 25px 100%, 25px 100%
+    }
 }
