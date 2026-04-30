@@ -31,7 +31,7 @@ transform = transforms.Compose([
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model = Bird_CNN(c_in=3, c_hidden=15, c_out=7)
+model =Bird_CNN(c_in=3, c_hidden=64, c_out=7)
 full_path = os.path.join(BUILD_PATH, "bird_cnn")
 model.load_state_dict(torch.load(full_path, map_location=torch.device(device)))
 model.to(device)

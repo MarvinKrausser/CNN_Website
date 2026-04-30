@@ -50,7 +50,7 @@ class Bird_CNN(nn.Module):
             SkipBlock(c_in=c_hidden, c_out=c_hidden),
             SkipBlock(c_in=c_hidden, c_out=c_hidden),
             SkipBlock(c_in=c_hidden, c_out=c_hidden),
-
+            
             SkipBlock(c_in=c_hidden, c_out=c_hidden*2),
             SkipBlock(c_in=c_hidden*2, c_out=c_hidden*2),
             SkipBlock(c_in=c_hidden*2, c_out=c_hidden*2),
