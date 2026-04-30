@@ -1,39 +1,5 @@
-#background {
-    position: absolute;
-    left: 0;
-    top: 0;
-    background-image: url('/cherry_bird.jpeg');
-    background-size: cover;
-    background-position: center;
-    height: 100vh;
-    width: 100%;
-    z-index: 0;
-    opacity: 0.1;
-    pointer-events: none;
-}
-
-.site-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 1;
-    margin-top: 120px;
-    height: 600px;
-}
-
-.content-block {
-    display: flex;
-    align-items: baseline;
-    gap: 20px;
-}
-
-.input-box {
-    display: flex;
-    gap: 20px;
-}
-
 .custom-button {
+    height: 40px;
     padding: 10px 20px;
     background: #333;
     color: rgb(225, 225, 225);
@@ -47,29 +13,90 @@
     color: white;
 }
 
-.response-block {
-    margin-top: auto;
-    width: 20%;
+.custom-button.inactive {
+    background: #333;
+    color: rgb(117, 117, 117);
+    cursor: default;
+}
+
+.custom-button.inactive:hover {
+    border-color: black;
+}
+
+.explanation-box a,
+span,
+p {
+    line-height: 1.7;
+    font-size: 17px;
+}
+
+a {
+    color: rgb(0, 0, 0);
+    text-decoration: none;
+    border-bottom: 1px solid black;
+    padding-bottom: 2px;
+    transition: border-color 0.15s;
+}
+
+a:hover {
+    border-color: white;
+}
+
+
+.explanation-box {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    justify-content: left;
+    flex-wrap: wrap;
+    overflow: hidden;
+    border: 3px solid rgb(48, 62, 74);
+    margin: 50px;
+    padding: 50px;
+    border-radius: 12px;
+    background: rgb(97, 125, 151);
 }
 
 .image-box {
-    border: 1px solid black;
+    border: 2px solid black;
     background: rgb(69, 69, 69);
-    height: 300px;
-    width: 500px;
+    height: 400px;
+    width: 600px;
     margin-top: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    opacity: 0.5;
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.image-box:hover {
+    border-color: white;
+}
+
+.image-box img {
+    border: 2px solid black;
+    border-Radius: 8px;
+
+}
+
+.image-box:hover p {
+    color: white;
+}
+
+.image-box img:hover {
+    border-color: white;
 }
 
 .image-box.active {
-    opacity: 1;
     background: none;
     border: none;
+}
+
+.content-block {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 40px;
 }

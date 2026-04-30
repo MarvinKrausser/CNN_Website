@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useRef } from "react";
-import './Bird_CNN.css'
+import './Bird_CNN.css';
 
 function Bird_CNN() {
     const apiUrl = process.env.NODE_ENV === "development"
@@ -14,6 +14,12 @@ function Bird_CNN() {
     const [confidence, setConfidence] = useState(null);
     const [error, setError] = useState(false);
     const [preview, setPreview] = useState(null);
+    const fileInputRef = useRef(null);
+    const uploadButton = useRef(null);
+
+    const handleImageDivClick = () => {
+        fileInputRef.current.click();
+    }
 
     const handleImage = (e) => {
         setFile(e.target.files[0]);
@@ -21,6 +27,7 @@ function Bird_CNN() {
         if (e.target.files[0]) {
             setPreview(URL.createObjectURL(e.target.files[0]));
             boxRef.current.classList.add("active");
+            uploadButton.current.classList.remove("inactive");
         }
         setConfidence(null);
         setBirdClass(null);
@@ -57,42 +64,64 @@ function Bird_CNN() {
 
     return (
         <>
-            <div id='background'></div>
-            <div className='site-content'>
-                <h1 id='site-headline'>Bird Species Expert</h1>
-                <div className='input-box'>
-                    <input type="file" id='fileUpload' accept="image/jpeg" onChange={handleImage} style={{ display: "none" }} />
-                    <label htmlFor="fileUpload" className="custom-button">
-                        Choose an image
-                    </label>
-                    <button id='button-send' onClick={sendImage} style={{ display: "none" }} />
-                    <label htmlFor="button-send" className="custom-button">
-                        Ask Expert
-                    </label>
+            <div className='site-box' style={{ marginTop: "150px" }}>
+                <h1 id='site-headline' style={{ marginLeft: "100px", marginBottom: "50px" }}>Bird Species Expert</h1>
+                <div className='content-box' style={{ display: "flex" }}>
+                    <div className='explanation-box'>
+                        <h2 style={{ color: "Blue" }}>Explanation</h2>
+                        <span>Select an image and upload it to our bird expert. You will receive a classification and how certain the expert is with her opinion. Be aware that the expert may not be always right.</span>
+                    </div>
 
-                </div>
+                    <div className='request-box' style={{ height: "700px", width: "700px", display: "flex", flexDirection: "column", alignItems: "center", flex: "0 0 auto" }}>
+                        <div className='input-box' style={{ width: "500px", height: "40px", display: "flex", justifyContent: "space-evenly", alignItems: "center" }}>
+                            <div>
+                                <input ref={fileInputRef} type="file" id='fileUpload' accept="image/jpeg" onChange={handleImage} style={{ display: "none" }} />
+                                <label htmlFor="fileUpload" className="custom-button">
+                                    Select an image
+                                </label>
+                            </div>
+                            <div>
+                                <button id='button-send' onClick={sendImage} style={{ display: "none" }} />
+                                <label htmlFor="button-send" className="custom-button inactive" ref={uploadButton}>
+                                    Ask Expert
+                                </label>
+                            </div>
 
-                <div ref={boxRef} className='image-box'>
-                    {preview && (
-                        <img
-                            src={preview}
-                            alt="preview"
-                            style={{ height: "300px", border: "1px solid black" }}
-                        />
-                    )}
-                </div>
+                        </div>
+
+                        <div ref={boxRef} className='image-box' onClick={handleImageDivClick}>
+                            {!preview && <p>Select Image</p>}
+                            {preview && (
+                                <img
+                                    src={preview}
+                                    alt="preview"
+                                    style={{ height: "400px" }}
+                                />
+                            )}
+                        </div>
 
 
-                <div className='response-block'>
-                    {!error && <div className='content-block class'>
-                        <h3>Bird Species: </h3>
-                        <p id='bird-class-text'>{birdClass}</p>
-                    </div>}
-                    {!error && <div className='content-block confidence'>
-                        <h4>Model Confidence: </h4>
-                        <p id='bird-confidence-text'>{confidence}</p>
-                    </div>}
-                    {error && <h4>An Error has uccured. Please try again later.</h4>}
+                        <div className='response-block' style={{ width: "80%", margin: "40px", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "10px" }}>
+                            <div className='content-block class'>
+                                <h3>Bird Species: </h3>
+                                <p id='bird-class-text'>{birdClass}</p>
+                            </div>
+                            <div className='content-block confidence'>
+                                <h4>Model Confidence: </h4>
+                                <p id='bird-confidence-text'>{confidence}</p>
+                            </div>
+                            {error && <h4>An Error has uccured. Please try again later.</h4>}
+                        </div>
+                    </div>
+
+                    <div className='explanation-box'>
+                        <h3>Model Architecture</h3>
+                        <div style={{ display: "inline" }}>
+                            <span>The model used for classification is a convolutional neural network (CNN) based on depthwise separable convolutions, as introduced in the </span>
+                            <a href='https://arxiv.org/pdf/1610.02357' target='_blank' rel='noopener noreferrer'>Xception: Deep Learning with Depthwise Separable Convolutions</a>
+                            <span> paper by François Chollet. It uses who knows how many layers, a dropout and multiple batchnormalsation.</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </>
