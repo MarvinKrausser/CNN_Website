@@ -11,7 +11,7 @@ function Bird_CNN() {
     const [birdClass, setBirdClass] = useState(null);
     const [confidence, setConfidence] = useState(null);
     const [error, setError] = useState(false);
-    const [preview, setPreview] = useState("\\cherry_bird.jpeg");
+    const [preview, setPreview] = useState("/cherry_bird.jpeg");
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
     const uploadButton = useRef(null);
