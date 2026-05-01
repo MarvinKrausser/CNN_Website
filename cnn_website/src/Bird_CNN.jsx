@@ -123,7 +123,7 @@ function Bird_CNN() {
                         <div style={{ display: "inline" }}>
                             <span>The model used for classification is a convolutional neural network (CNN) based on depthwise separable convolutions, as introduced in the </span>
                             <a href='https://arxiv.org/pdf/1610.02357' target='_blank' rel='noopener noreferrer'>Xception: Deep Learning with Depthwise Separable Convolutions</a>
-                            <span> paper by François Chollet. It uses who knows how many layers, a dropout and multiple batchnormalsation.</span>
+                            <span> paper by François Chollet. The model uses who knows how many layers, a dropout and multiple batchnormalsation.</span>
                         </div>
                     </div>
                 </div>
