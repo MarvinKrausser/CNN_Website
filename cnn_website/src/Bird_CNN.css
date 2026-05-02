@@ -13,11 +13,13 @@
 
 .custom-button:hover {
     border-color: white;
+    color: white;
 }
 
 .custom-button.inactive {
     opacity: 0.3;
     cursor: default;
+    color: black;
 }
 
 .custom-button.inactive:hover {

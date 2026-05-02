@@ -6,7 +6,13 @@
     justify-content: center;
     align-items: center;
     border-bottom: 1px solid rgb(47, 168, 208);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    background: rgb(4, 0, 10);
 }
+
 .navbar-item {
     text-decoration: none;
     height: 80px;

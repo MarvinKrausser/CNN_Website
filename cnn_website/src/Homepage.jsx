@@ -1,7 +1,7 @@
 function Homepage() {
     return (
         <>
-            <p>Homepage</p>
+            <h1 style={{ margin: "120px 40px 40px 40px" }}>Ignore this page</h1>
         </>
     );
 }

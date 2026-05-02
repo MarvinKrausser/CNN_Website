@@ -15,26 +15,41 @@ function Bird_CNN() {
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
     const uploadButton = useRef(null);
-    const scrollRef = useRef(null);
+    const scrollRefClassifiction = useRef(null);
+    const scrollRefUploadButton = useRef(null);
+
+    const isPartiallyInViewport = (el) => {
+        if (!el) return false;
+
+        const rect = el.getBoundingClientRect();
+
+        return (
+            rect.top < window.innerHeight &&
+            rect.bottom > 0
+        );
+    };
 
     const handleImageDivClick = () => {
         fileInputRef.current.click();
     }
 
     const handleImage = (e) => {
-        if (e.target.files[0]) {
-            setFile(e.target.files[0]);
-            setPreview(URL.createObjectURL(e.target.files[0]));
-            uploadButton.current.classList.remove("inactive");
-        }
+        if (!e.target.files[0]) { return; }
+        setFile(e.target.files[0]);
+        setPreview(URL.createObjectURL(e.target.files[0]));
+        uploadButton.current.classList.remove("inactive");
+
+        scrollRefUploadButton.current.scrollIntoView({ behavior: "smooth" });
+
         setConfidence(null);
         setBirdClass(null);
+
     };
 
     const sendImage = async (e) => {
         if (!file) return;
 
-        scrollRef.current.scrollIntoView({ behavior: "smooth" });
+        scrollRefClassifiction.current.scrollIntoView({ behavior: "smooth" });
 
         const formData = new FormData();
         formData.append("file", file);
@@ -76,7 +91,7 @@ function Bird_CNN() {
                     </div>
 
                     <div className='request-box' style={{ height: "800px", width: "700px", display: "flex", flexDirection: "column", alignItems: "center", flex: "0 0 auto", margin: "100px 50px 0px 50px" }}>
-                        <div className='input-box' style={{ marginBottom: "80px", width: "500px", height: "40px", display: "flex", justifyContent: "space-evenly", alignItems: "center" }}>
+                        <div ref={scrollRefUploadButton} className='input-box' style={{ scrollMarginTop: "100px", marginBottom: "80px", width: "500px", height: "40px", display: "flex", justifyContent: "space-evenly", alignItems: "center" }}>
                             <div>
                                 <input disabled={loading} ref={fileInputRef} type="file" id='fileUpload' accept="image/jpeg" onChange={handleImage} style={{ display: "none" }} />
                                 <label htmlFor="fileUpload" className="custom-button">
@@ -94,7 +109,7 @@ function Bird_CNN() {
 
                         <div className='image-box'>
                             <img
-                                onClick={handleImageDivClick} 
+                                onClick={handleImageDivClick}
                                 disabled={loading}
                                 src={preview}
                                 alt="preview"
@@ -102,7 +117,7 @@ function Bird_CNN() {
                             />
                         </div>
 
-                        <div ref={scrollRef} style={{ paddingTop: "10px", marginTop: "30px", width: "85px", height: "35px", display: "flex", justifyContent: "center", minHeight: "25px", minWidth: "85px" }}>
+                        <div ref={scrollRefClassifiction} style={{ scrollMarginTop: "100px", paddingTop: "10px", marginTop: "30px", width: "85px", height: "35px", display: "flex", justifyContent: "center", minHeight: "25px", minWidth: "85px" }}>
                             {loading && <div className='loader'></div>}
                         </div>
 
