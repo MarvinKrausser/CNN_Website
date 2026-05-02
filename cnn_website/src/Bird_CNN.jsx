@@ -113,7 +113,7 @@ function Bird_CNN() {
                                 disabled={loading}
                                 src={preview}
                                 alt="preview"
-                                style={{ maxHeight: "400px", height: "auto", userSelect: "none", maxWidth: "700px" }}
+                                style={{ height: "100%", userSelect: "none", maxWidth: "700px" }}
                             />
                         </div>
 
