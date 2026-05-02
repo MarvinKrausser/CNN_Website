@@ -92,8 +92,10 @@ function Bird_CNN() {
 
                         </div>
 
-                        <div className='image-box' onClick={handleImageDivClick} disabled={loading}>
+                        <div className='image-box'>
                             <img
+                                onClick={handleImageDivClick} 
+                                disabled={loading}
                                 src={preview}
                                 alt="preview"
                                 style={{ maxHeight: "400px", height: "auto", userSelect: "none", maxWidth: "700px" }}

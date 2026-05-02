@@ -1,11 +1,13 @@
 .custom-button {
+    font-size: 1rem;
+    font-weight: bold;
     height: 40px;
     padding: 10px 20px;
-    background: rgb(25, 100, 126);
-    color: rgb(255, 255, 255);
+    background: rgb(47, 168, 208);
+    color: rgb(0, 0, 0);
     cursor: pointer;
     border-radius: 20px;
-    border: 1px solid rgb(25, 100, 126);
+    border: 2px solid rgb(47, 168, 208);
     user-select: none;
 }
 
@@ -19,7 +21,7 @@
 }
 
 .custom-button.inactive:hover {
-    border-color: rgb(25, 100, 126);
+    border-color: rgb(47, 168, 208);
 }
 
 #site-headline {
@@ -43,7 +45,7 @@
     background: rgb(47, 168, 208);
 }
 
-a {
+.site-box a {
     text-decoration: none;
     border-bottom: 1px solid rgb(255, 255, 255);
     padding-bottom: 2px;
@@ -72,14 +74,14 @@ a:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
 }
 
-.image-box:hover {
+.image-box img:hover {
     border-color: white;
 }
 
 .image-box img {
+    cursor: pointer;
     border: 2px solid black;
     border-Radius: 10px;
 

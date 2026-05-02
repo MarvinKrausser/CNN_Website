@@ -1,19 +1,29 @@
-FROM node:20-alpine AS build
+# Step 1: Build the app
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install dependencies
 COPY package*.json ./
 RUN npm install
 
+# Copy source code
 COPY . .
 
+# Build the project
 RUN npm run build
 
 
-FROM nginx:alpine
+# Step 2: Run preview server
+FROM node:20-alpine
 
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-EXPOSE 80
+# Copy built files and node_modules (for vite preview)
+COPY --from=builder /app ./
 
-CMD ["nginx", "-g", "daemon off;"]
+# Expose Vite preview port
+EXPOSE 4173
+
+# Run preview server
+CMD ["npm", "run", "preview", "--", "--host"]

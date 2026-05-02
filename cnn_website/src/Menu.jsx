@@ -5,8 +5,8 @@ function Menu() {
     return (
         <>
             <nav id="navbar-main">
-                <Link to="/">Homepage</Link>
-                <Link to="/bird_cnn">Birds</Link>
+                <Link className='navbar-item' to="/">Homepage</Link>
+                <Link className='navbar-item' to="/bird_cnn">Birds</Link>
             </nav>
         </>
     );
