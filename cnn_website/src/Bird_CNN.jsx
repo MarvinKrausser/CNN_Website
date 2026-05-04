@@ -61,26 +61,26 @@ function Bird_CNN() {
                 method: "POST",
                 body: formData,
             });
+
+            if (!response.ok) {
+                setError(true);
+                return;
+            }
+            else {
+                setError(false);
+            }
+
+            const result = await response.json();
+
+            setBirdClass(result["class"]);
+            const confidence = result["confidence"];
+            setConfidence(`${Math.round(confidence * 100)}%`);
         } catch (e) {
             setError(true);
-            return;
         }
         finally {
             setLoading(false);
         }
-
-        if (!response.ok) {
-            setError(true);
-            return;
-        }
-        else {
-            setError(false);
-        }
-
-        const result = await response.json();
-        setBirdClass(result["class"]);
-        const confidence = result["confidence"];
-        setConfidence(`${Math.round(confidence * 100)}%`);
     };
 
     return (
