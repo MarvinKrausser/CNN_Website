@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     allowedHosts: [
-      "cnn.marvinkrausser.com"
+      "all"
     ]
   }
 })
