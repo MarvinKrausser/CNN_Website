@@ -41,10 +41,19 @@ model.load_state_dict(torch.load(full_path, map_location=torch.device(device)))
 model.to(device)
 model.eval()
 
-app = FastAPI(
-    root_path="/cnn-api",
-    openapi_url="/cnn-api/openapi.json",
-    docs_url="/cnn-api/docs"
+app = FastAPI()
+
+origins = [
+    "https://marvinkrausser.com",
+    "https://api.marvinkrausser.com",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.post("/predict")
