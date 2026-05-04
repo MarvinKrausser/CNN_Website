@@ -41,7 +41,11 @@ model.load_state_dict(torch.load(full_path, map_location=torch.device(device)))
 model.to(device)
 model.eval()
 
-app = FastAPI(root_path="/cnn-api")
+app = FastAPI(
+    root_path="/cnn-api",
+    openapi_url="/cnn-api/openapi.json",
+    docs_url="/cnn-api/docs"
+)
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
