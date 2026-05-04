@@ -4,8 +4,8 @@ import './Bird_CNN.css';
 
 function Bird_CNN() {
     const apiUrl = process.env.NODE_ENV === "development"
-        ? "http://134.60.154.7:8000"
-        : "http://134.60.154.7:8000";
+        ? "https://api.marvinkrausser.com"
+        : "https://api.marvinkrausser.com";
 
     const [file, setFile] = useState(null);
     const [birdClass, setBirdClass] = useState(null);
