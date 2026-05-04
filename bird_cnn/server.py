@@ -14,7 +14,7 @@ from bird_cnn import Bird_CNN
 import threading
 
 BUILD_PATH = "./build_models"
-IMAGE_SIZE = 256
+IMAGE_SIZE = 64
 
 sem = threading.Semaphore(1) #adjust to performance
 
@@ -35,25 +35,13 @@ transform = transforms.Compose([
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model =Bird_CNN(c_in=3, c_hidden=64, c_out=7)
+model = Bird_CNN(c_in=3, c_hidden=16, c_out=7)
 full_path = os.path.join(BUILD_PATH, "bird_cnn")
 model.load_state_dict(torch.load(full_path, map_location=torch.device(device)))
 model.to(device)
 model.eval()
 
-app = FastAPI()
-
-origins = [
-    "*"
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(root_path="/cnn-api")
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):

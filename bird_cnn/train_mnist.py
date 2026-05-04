@@ -27,13 +27,13 @@ val_dataset = datasets.MNIST(
     transform=transform
 )
 
-train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
 device = torch.device("cpu") if not torch.cuda.is_available() else torch.device("cuda:0")
 print("Using device", device)
 
-model = Bird_CNN(c_in=1, c_hidden=8, c_out=10)
+model = Bird_CNN(c_in=1, c_hidden=4, c_out=10)
 model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
 loss_module = nn.CrossEntropyLoss()

@@ -4,8 +4,8 @@ import './Bird_CNN.css';
 
 function Bird_CNN() {
     const apiUrl = process.env.NODE_ENV === "development"
-        ? "https://api.marvinkrausser.com"
-        : "https://api.marvinkrausser.com";
+        ? "https://marvinkrausser.com/api"
+        : "https://marvinkrausser.com/api";
 
     const [file, setFile] = useState(null);
     const [birdClass, setBirdClass] = useState(null);
@@ -54,30 +54,33 @@ function Bird_CNN() {
         const formData = new FormData();
         formData.append("file", file);
 
+        setLoading(true);
+
         try {
-            setLoading(true);
             const response = await fetch(`${apiUrl}/predict`, {
                 method: "POST",
                 body: formData,
             });
-
+        } catch (e) {
+            setError(true);
+            return;
+        }
+        finally {
             setLoading(false);
-
-            if (!response.ok) {
-                setError(true);
-            }
-            else {
-                setError(false);
-            }
-
-            const result = await response.json();
-            setBirdClass(result["class"]);
-            const confidence = result["confidence"];
-            setConfidence(`${Math.round(confidence * 100)}%`);
         }
-        catch (error) {
-            console.error("Upload failed:", error);
+
+        if (!response.ok) {
+            setError(true);
+            return;
         }
+        else {
+            setError(false);
+        }
+
+        const result = await response.json();
+        setBirdClass(result["class"]);
+        const confidence = result["confidence"];
+        setConfidence(`${Math.round(confidence * 100)}%`);
     };
 
     return (

@@ -27,14 +27,25 @@ class  SeparableConvolution(nn.Module):
 class SkipBlock(nn.Module):
     def __init__(self, c_in, c_out, kernel_size=3):
         super().__init__()
-        self.conv = SeparableConvolution(c_in=c_in, c_out=c_out, kernel_size=kernel_size)
+        self.conv = nn.Sequential(
+            nn.Conv2d(c_in, c_out, kernel_size, padding=kernel_size//2),
+            nn.BatchNorm2d(c_out),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(c_out, c_out, kernel_size, padding=kernel_size//2),
+            nn.BatchNorm2d(c_out),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(c_out, c_out, kernel_size, padding=kernel_size//2),
+            nn.BatchNorm2d(c_out),
+            nn.ReLU(inplace=True)
+        )
         self.conv_skip = nn.Sequential(
             nn.Conv2d(c_in, c_out, 1),
-            nn.BatchNorm2d(c_out)
+            nn.BatchNorm2d(c_out),
+            nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
-        return(F.relu(self.conv_skip(x) + self.conv(x)))
+        return(F.relu(self.conv_skip(x) + self.conv(x), inplace=True))
 
 
 class Bird_CNN(nn.Module):
@@ -44,7 +55,7 @@ class Bird_CNN(nn.Module):
         self.model = nn.Sequential(
             nn.Conv2d(c_in, c_hidden, kernel_size=3, padding=1),
             nn.BatchNorm2d(c_hidden),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
 
             SkipBlock(c_in=c_hidden, c_out=c_hidden),
             SkipBlock(c_in=c_hidden, c_out=c_hidden),
@@ -56,7 +67,8 @@ class Bird_CNN(nn.Module):
             SkipBlock(c_in=c_hidden*2, c_out=c_hidden*2),
             SkipBlock(c_in=c_hidden*2, c_out=c_hidden*2),
 
-            SeparableConvolution(c_in=c_hidden*2, c_out=c_hidden*4, kernel_size=3),
+            nn.Conv2d(c_hidden*2, c_hidden*4, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
 
             nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten(),
