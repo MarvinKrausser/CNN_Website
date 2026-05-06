@@ -96,7 +96,7 @@ function Bird_CNN() {
                     <div className='request-box'>
                         <div ref={scrollRefUploadButton} className='input-box'>
                             <div className='button-div'>
-                                <input disabled={loading} ref={fileInputRef} type="file" id='fileUpload' accept="image/jpeg" onChange={handleImage} style={{ display: "none" }} />
+                                <input disabled={loading} ref={fileInputRef} type="file" id='fileUpload' accept="image" onChange={handleImage} style={{ display: "none" }} />
                                 <label htmlFor="fileUpload" className="custom-button">
                                     Select Image
                                 </label>
@@ -140,9 +140,7 @@ function Bird_CNN() {
                     <div className='explanation-box right'>
                         <h3>Model Architecture</h3>
                         <div style={{ display: "inline" }}>
-                            <span>The model used for classification is a convolutional neural network (CNN) based on depthwise separable convolutions, as introduced in the </span>
-                            <a href='https://arxiv.org/pdf/1610.02357' target='_blank' rel='noopener noreferrer'>Xception: Deep Learning with Depthwise Separable Convolutions</a>
-                            <span> paper by François Chollet. The model uses who knows how many layers, a dropout and multiple batchnormalsation.</span>
+                            <span>The model used for classification is a convolutional neural network. The model uses who knows how many layers, a dropout and multiple batchnormalsation.</span>
                         </div>
                     </div>
                 </div>
