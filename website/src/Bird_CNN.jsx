@@ -127,11 +127,11 @@ function Bird_CNN() {
                         <div className='response-block'>
                             <div className='content-block class'>
                                 <h3 className='conten-block-text'>Bird Species: </h3>
-                                <p id='bird-class-text' className='conten-block-text'>{birdClass}</p>
+                                {birdClass && <p id='bird-class-text' className='conten-block-text'>{birdClass}</p>}
                             </div>
                             <div className='content-block confidence'>
                                 <h4 className='conten-block-text'>Model Confidence: </h4>
-                                <p id='bird-confidence-text' className='conten-block-text'>{confidence}</p>
+                                {confidence && <p id='bird-confidence-text' className='conten-block-text'>{confidence}</p>}
                             </div>
                             {error && <h4 className='conten-block-text'>An Error has uccured. Please try again later.</h4>}
                         </div>
