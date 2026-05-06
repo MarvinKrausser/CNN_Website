@@ -1,5 +1,5 @@
 services:
-  cnn_website:
+  cnn_api:
     build:
       context: api/.
     image: cnn_api
