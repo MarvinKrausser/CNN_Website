@@ -1,5 +1,5 @@
 marvinkrausser.com {
-   reverse_proxy cnn_website:8000:8080
+   reverse_proxy cnn_website:8080
 }
 
 api.marvinkrausser.com {
