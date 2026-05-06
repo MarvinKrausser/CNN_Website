@@ -1,0 +1,9 @@
+services:
+  cnn_website:
+    build:
+      context: bird_cnn/.
+    image: cnn_api
+    container_name: cnn_api_1
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
