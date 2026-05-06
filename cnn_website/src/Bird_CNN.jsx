@@ -85,7 +85,7 @@ function Bird_CNN() {
 
     return (
         <>
-            <div className='site-box' style={{ marginTop: "150px" }}>
+            <div className='site-box'>
                 <h1 id='site-headline'>Bird Species Expert</h1>
                 <div className='content-box' style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}>
                     <div className='explanation-box left'>
@@ -93,15 +93,15 @@ function Bird_CNN() {
                         <span>Select an image and upload it to our bird expert. You will receive a classification and how certain the expert is with her opinion. Be aware that the expert may not be always right.</span>
                     </div>
 
-                    <div className='request-box' style={{ height: "800px", width: "700px", display: "flex", flexDirection: "column", alignItems: "center", flex: "0 0 auto", margin: "100px 50px 0px 50px" }}>
-                        <div ref={scrollRefUploadButton} className='input-box' style={{ scrollMarginTop: "100px", marginBottom: "80px", width: "500px", height: "40px", display: "flex", justifyContent: "space-evenly", alignItems: "center" }}>
-                            <div>
+                    <div className='request-box'>
+                        <div ref={scrollRefUploadButton} className='input-box'>
+                            <div className='button-div'>
                                 <input disabled={loading} ref={fileInputRef} type="file" id='fileUpload' accept="image/jpeg" onChange={handleImage} style={{ display: "none" }} />
                                 <label htmlFor="fileUpload" className="custom-button">
                                     Select Image
                                 </label>
                             </div>
-                            <div>
+                            <div className='button-div'>
                                 <button id='button-send' onClick={sendImage} style={{ display: "none" }} disabled={loading} />
                                 <label htmlFor="button-send" className="custom-button inactive" ref={uploadButton}>
                                     Ask Expert
@@ -116,25 +116,24 @@ function Bird_CNN() {
                                 disabled={loading}
                                 src={preview}
                                 alt="preview"
-                                style={{ height: "100%", userSelect: "none", maxWidth: "700px" }}
                             />
                         </div>
 
-                        <div ref={scrollRefClassifiction} style={{ scrollMarginTop: "100px", paddingTop: "10px", marginTop: "30px", width: "85px", height: "35px", display: "flex", justifyContent: "center", minHeight: "25px", minWidth: "85px" }}>
+                        <div ref={scrollRefClassifiction} className='loader-container'>
                             {loading && <div className='loader'></div>}
                         </div>
 
 
-                        <div className='response-block' style={{ marginTop: "40px", width: "80%", margin: "40px", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "10px" }}>
+                        <div className='response-block'>
                             <div className='content-block class'>
-                                <h3>Bird Species: </h3>
-                                <p id='bird-class-text'>{birdClass}</p>
+                                <h3 className='conten-block-text'>Bird Species: </h3>
+                                <p id='bird-class-text' className='conten-block-text'>{birdClass}</p>
                             </div>
                             <div className='content-block confidence'>
-                                <h4>Model Confidence: </h4>
-                                <p id='bird-confidence-text'>{confidence}</p>
+                                <h4 className='conten-block-text'>Model Confidence: </h4>
+                                <p id='bird-confidence-text' className='conten-block-text'>{confidence}</p>
                             </div>
-                            {error && <h4>An Error has uccured. Please try again later.</h4>}
+                            {error && <h4 className='conten-block-text'>An Error has uccured. Please try again later.</h4>}
                         </div>
                     </div>
 
