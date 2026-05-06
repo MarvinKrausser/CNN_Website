@@ -8,8 +8,8 @@ services:
       - "443:443"
     restart: unless-stopped
     depends_on:
-      - api
-      - frontend
+      - cnn_api
+      - cnn_website
 
 
   cnn_api:
