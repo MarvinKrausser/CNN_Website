@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  cnn_website:
+    build:
+      context: .
+    image: cnn_website
+    container_name: cnn_website_1
+    ports:
+      - "8080:80"
+    restart: unless-stopped
