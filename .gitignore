@@ -1,2 +1,4 @@
-bird_cnn/data/
-bird_cnn/saved_models/
+api/data/
+api/saved_models/
+api/testimages/
+api/__pycache__/

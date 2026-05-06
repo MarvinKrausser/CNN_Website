@@ -1,0 +1,16 @@
+services:
+  cnn_website:
+    build:
+      context: api/.
+    image: cnn_api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  cnn_website:
+    build:
+      context: website/.
+    image: cnn_website
+    ports:
+      - "8080:80"
+    restart: unless-stopped
