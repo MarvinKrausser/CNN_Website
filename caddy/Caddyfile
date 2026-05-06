@@ -1,7 +1,7 @@
 marvinkrausser.com {
-   reverse_proxy localhost:8080
+   reverse_proxy cnn_website:8000:8080
 }
 
 api.marvinkrausser.com {
-  reverse_proxy localhost:8000
+  reverse_proxy cnn_api:8000
 }

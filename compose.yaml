@@ -1,25 +1,30 @@
 services:
+  caddy_proxy:
+    build:
+      context: caddy/.
+    image: caddy_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    depends_on:
+      - api
+      - frontend
+
+
   cnn_api:
     build:
       context: api/.
     image: cnn_api
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     restart: unless-stopped
+
 
   cnn_website:
     build:
       context: website/.
     image: cnn_website
-    ports:
-      - "8080:80"
-    restart: unless-stopped
-
-  caddy:
-    build:
-      context: caddy/.
-    image: cnn_website
-    ports:
-      - "80:80"
-      - "443:443"
+    expose:
+      - "8080"
     restart: unless-stopped
