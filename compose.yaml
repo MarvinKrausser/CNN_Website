@@ -14,3 +14,12 @@ services:
     ports:
       - "8080:80"
     restart: unless-stopped
+
+  caddy:
+    build:
+      context: caddy/.
+    image: cnn_website
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
