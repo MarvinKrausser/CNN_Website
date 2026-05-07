@@ -5,3 +5,7 @@ marvinkrausser.com {
 api.marvinkrausser.com {
   reverse_proxy cnn_api:8000
 }
+
+portfolio.marvinkrausser.com {
+  reverse_proxy cnn_api:8081
+}
