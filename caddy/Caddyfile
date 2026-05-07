@@ -7,5 +7,5 @@ api.marvinkrausser.com {
 }
 
 portfolio.marvinkrausser.com {
-  reverse_proxy cnn_api:8081
+  reverse_proxy portfolio_website:8081
 }
