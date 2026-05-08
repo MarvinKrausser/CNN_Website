@@ -12,6 +12,8 @@ services:
     depends_on:
       - cnn_api
       - cnn_website
+    networks:
+      - cnn_network
 
 
   cnn_api:
@@ -21,6 +23,8 @@ services:
     expose:
       - "8000"
     restart: unless-stopped
+    networks:
+      - cnn_network
 
 
   cnn_website:
@@ -30,3 +34,9 @@ services:
     expose:
       - "8080"
     restart: unless-stopped
+    networks:
+      - cnn_network
+
+networks:
+  cnn_network:
+    name: cnn_network
