@@ -3,7 +3,7 @@ marvinkrausser.com {
 
    log {
     output file /data/caddy/logs/cnn.access.log
-    format console
+    format json
    }
 }
 
@@ -12,7 +12,7 @@ api.marvinkrausser.com {
 
   log {
     output file /data/caddy/logs/api.access.log
-    format console
+    format json
    }
 }
 
@@ -21,6 +21,6 @@ portfolio.marvinkrausser.com {
 
   log {
     output file /data/caddy/logs/portfolio.access.log
-    format console
+    format json
    }
 }
