@@ -16,7 +16,7 @@ IMAGE_SIZE = 64
 
 class bird_species(Enum):
     Common_Kingfisher = 0
-    CommonMyna = 1
+    Common_Myna = 1
     House_Crow = 2
     Indian_Peacock = 3
     Indian_Pitta = 4

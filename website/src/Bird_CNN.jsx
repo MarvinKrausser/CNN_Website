@@ -90,7 +90,16 @@ function Bird_CNN() {
                 <div className='content-box' style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}>
                     <div className='explanation-box left'>
                         <h2 style={{ color: "rgb(47, 168, 208)" }}>Explanation</h2>
-                        <span>Select an image and upload it to our bird expert. You will receive a classification and how certain the expert is with her opinion. Be aware that the expert may not be always right.</span>
+                        <span>Select and upload an image to our bird classification model. The system will return a predicted species along with a confidence score indicating how certain the model is about its prediction. Please note that the model may not always produce correct classifications. The supported Species are:</span>
+                        <ul className='species-list'>
+                            <li className='species-item'>Common Kingfisher</li>
+                            <li className='species-item'>Common Myna</li>
+                            <li className='species-item'>House Crow</li>
+                            <li className='species-item'>Indian Peacock</li>
+                            <li className='species-item'>Indian Pitta</li>
+                            <li className='species-item'>Ruddy Shelduck</li>
+                            <li className='species-item'>Sarus Crane</li>
+                        </ul>
                     </div>
 
                     <div className='request-box'>
@@ -140,7 +149,7 @@ function Bird_CNN() {
                     <div className='explanation-box right'>
                         <h3>Model Architecture</h3>
                         <div style={{ display: "inline" }}>
-                            <span>The model used for classification is a convolutional neural network. The model uses who knows how many layers, a dropout and multiple batchnormalsation.</span>
+                            <span>The classification model is based on a convolutional neural network (CNN). The architecture consists of eight skip blocks, each containing three convolutional layers, followed by batch normalization after each convolution and a dropout rate of 0.3. The dataset comprised seven classes, with 1,200 images per class.</span>
                         </div>
                     </div>
                 </div>

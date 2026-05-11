@@ -50,6 +50,23 @@
     background: rgb(47, 168, 208);
 }
 
+.species-item {
+    list-style: none;
+    position: relative;
+}
+
+.species-item::before {
+    content: "";
+    position: absolute;
+    left: -16px;
+    top: 50%;
+    height: 1.5px;
+    width: 10px;
+    background: rgb(255, 255, 255);
+    border-radius: 8px;
+    transform: translateY(-50%);
+}
+
 .site-box a {
     text-decoration: none;
     border-bottom: 1px solid rgb(255, 255, 255);
