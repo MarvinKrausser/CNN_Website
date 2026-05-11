@@ -1,11 +1,29 @@
 marvinkrausser.com {
    reverse_proxy cnn_website:8080
+
+   log {
+    output file /data/caddy/logs/access.log
+    format console
+    include http.log.access
+   }
 }
 
 api.marvinkrausser.com {
   reverse_proxy cnn_api:8000
+
+  log {
+    output file /data/caddy/logs/access.log
+    format console
+    include http.log.access
+   }
 }
 
 portfolio.marvinkrausser.com {
   reverse_proxy portfolio_website:8081
+
+  log {
+    output file /data/caddy/logs/access.log
+    format console
+    include http.log.access
+   }
 }
