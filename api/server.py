@@ -93,7 +93,7 @@ class Review(BaseModel):
     date: str
 
 @app.get("/review")
-def get_reviews():
+def get_reviews(auth=Depends(get_api_key)):
     conn = sqlite3.connect("database/reviews.db")
     cur = conn.cursor()
 
