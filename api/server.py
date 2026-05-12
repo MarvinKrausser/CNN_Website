@@ -143,7 +143,7 @@ def put_review(auth=Depends(get_api_key)):
     return {"status": "ok"}
 
 @app.delete("/review")
-def post_review(auth=Depends(get_api_key)):
+def delete_review(auth=Depends(get_api_key)):
     conn = sqlite3.connect("database/reviews.db")
     cur = conn.cursor()
 
