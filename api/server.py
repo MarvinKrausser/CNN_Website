@@ -123,6 +123,25 @@ def post_review(review: Review):
     conn.close()
     return {"status": "ok"}
 
+@app.put("/review")
+def put_review(auth=Depends(get_api_key)):
+    conn = sqlite3.connect("database/reviews.db")
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS reviews (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        website TEXT,
+        rating INTEGER,
+        text TEXT,
+        created_at TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
 @app.delete("/review")
 def post_review(auth=Depends(get_api_key)):
     conn = sqlite3.connect("database/reviews.db")
