@@ -24,12 +24,14 @@ class bird_species(Enum):
     Sarus_Crane = 6
 
 transform = transforms.Compose([
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.RandomRotation(35),
     transforms.Resize(IMAGE_SIZE),
     transforms.CenterCrop(IMAGE_SIZE),
     transforms.ToTensor()
 ])
 
-dataset = datasets.ImageFolder("data/train", transform=transform)
+dataset = datasets.ImageFolder("data/CUB_200_2011/images", transform=transform)
 
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
@@ -43,7 +45,7 @@ val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 device = torch.device("cpu") if not torch.cuda.is_available() else torch.device("cuda:0")
 print("Using device", device)
 
-model = Bird_CNN(c_in=3, c_hidden=16, c_out=7)
+model = Bird_CNN(c_in=3, c_hidden=16, c_out=200)
 model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
 loss_module = nn.CrossEntropyLoss()

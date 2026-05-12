@@ -12,7 +12,7 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-Copy . .
+COPY . .
 
 RUN chmod +x start_server.sh
 
