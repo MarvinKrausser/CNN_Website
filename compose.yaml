@@ -25,12 +25,12 @@ services:
     expose:
       - "8000"
     restart: unless-stopped
+    volumes:
+      - ./database:/database
     networks:
       - cnn_network
     pull_policy: never
     container_name: cnn_api
-    volumes:
-      - ./database:/database
 
 
   cnn_website:
