@@ -134,7 +134,7 @@ def trainCNN(model, optimizer, loss_module, train_data_loader, validation_data_l
             save_dir = os.path.join(SAVE_PATH, "bird_cnn")
             os.makedirs(save_dir, exist_ok=True)
 
-            save_path = os.path.join(save_dir, f"bird_cnn{epoch+1}")
+            save_path = os.path.join(save_dir, f"bird_cnn")
             torch.save(model.state_dict(), save_path)
 
         print(f"epoch: {epoch+1} | train accuracy: {int(train_acc * 1000) / 10}% | validation accuracy: {int(val_acc * 1000) / 10}%")

@@ -7,3 +7,6 @@ python-multipart==0.0.27
 opencv-python==4.13.0.92
 pillow==12.2.0
 pycocotools==2.0.11
+
+pydantic==2.13.3
+pydantic_core==2.46.3

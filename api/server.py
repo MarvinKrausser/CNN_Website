@@ -1,9 +1,12 @@
 from enum import Enum
 import os
+import sqlite3
 
+from dotenv import load_dotenv
+from pydantic import BaseModel
 import torch
 from torchvision import transforms
-from fastapi import FastAPI, File, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Header, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
@@ -73,3 +76,62 @@ async def predict(file: UploadFile = File(...)):
             "class": bird_species(cls.item()).name,
             "confidence": confidence.item()
         }
+
+
+load_dotenv("database/.env")
+API_KEY = os.getenv("API_KEY")
+
+def get_api_key(authorization: str = Header(None)):
+    if authorization != f"Bearer {API_KEY}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return authorization
+
+class Review(BaseModel):
+    website: str
+    rating: int
+    text: str
+    date: str
+
+@app.get("/review")
+def get_reviews():
+    conn = sqlite3.connect("database/reviews.db")
+    cur = conn.cursor()
+
+    cur.execute("""
+    SELECT * FROM reviews;
+    """)
+
+    data = cur.fetchall()
+
+    print(data)
+
+    conn.commit()
+    conn.close()
+    return {"data": data}
+
+@app.post("/review")
+def post_review(review: Review):
+    conn = sqlite3.connect("database/reviews.db")
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO reviews (website, rating, text, created_at)
+        VALUES (?, ?, ?, ?)
+    """, (review.website, review.rating, review.text, review.date))
+
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
+@app.delete("/review")
+def post_review(auth=Depends(get_api_key)):
+    conn = sqlite3.connect("database/reviews.db")
+    cur = conn.cursor()
+
+    cur.execute("""
+        DELETE FROM reviews;
+    """)
+
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}

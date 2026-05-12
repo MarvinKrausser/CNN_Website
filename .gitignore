@@ -2,3 +2,5 @@ api/data/
 api/saved_models/
 api/testimages/
 api/__pycache__/
+
+**/*.env

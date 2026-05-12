@@ -29,6 +29,8 @@ services:
       - cnn_network
     pull_policy: never
     container_name: cnn_api
+    volumes:
+      - ./database:/api/database
 
 
   cnn_website:
