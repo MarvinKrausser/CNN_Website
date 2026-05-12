@@ -30,7 +30,7 @@ services:
     pull_policy: never
     container_name: cnn_api
     volumes:
-      - ./database:/api/database
+      - ./database:/database
 
 
   cnn_website:
