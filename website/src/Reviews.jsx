@@ -4,7 +4,7 @@ import SelectDropdown from './components/SelectDropdown';
 
 function Reviews() {
     const apiUrl = process.env.NODE_ENV === "development"
-        ? "http://localhost:8000"
+        ? "https://api.marvinkrausser.com"
         : "https://api.marvinkrausser.com";
 
     const [error, setError] = useState(null);
@@ -17,9 +17,9 @@ function Reviews() {
 
     const fetchReviews = async () => {
         const response = await fetch(`${apiUrl}/review`, {
-            method: "POST",
+            method: "GET",
             headers: {
-                "Authorization": `Bearer 1234`,
+                "authorization": `Bearer 1234`,
             },
         });
 
@@ -31,9 +31,9 @@ function Reviews() {
             setError(false);
         }
 
-        console.log(response);
-
         const result = await response.json();
+
+        console.log(result);
     }
 
     const sendReview = async () => {
@@ -41,12 +41,17 @@ function Reviews() {
             "website": selectedWebsite,
             "rating": selectedRating,
             "text": text,
-            "created_at": "today"
+            "date": "today"
         }
+
+        console.log(JSON.stringify(review));
 
         const response = await fetch(`${apiUrl}/review`, {
             method: "POST",
             body: JSON.stringify(review),
+            headers: {
+                "Content-Type": "application/json"
+            }
         });
 
         if (!response.ok) {
@@ -83,7 +88,6 @@ function Reviews() {
             setText(textInput);
         }
     };
-
 
     return (<>
         <div className='site-box'>
@@ -132,10 +136,12 @@ function Reviews() {
                     />
                 </div>
 
-                <button id='button-send' style={{ display: "none" }} onClick={sendReview} />
-                <label htmlFor="button-send" className="custom-button">
-                    Send Review
-                </label>
+                <div className='button-div'>
+                    <button id='button-send' style={{ display: "none" }} onClick={sendReview} />
+                    <label htmlFor="button-send" className="custom-button send-review">
+                        Send Review
+                    </label>
+                </div>
             </div>
         </div>
     </>)

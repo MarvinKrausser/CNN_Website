@@ -61,7 +61,7 @@ h4 {
 .custom-button {
     font-size: 1rem;
     font-weight: bold;
-    height: 40px;
+    height: 45px;
     padding: 10px 20px;
     background: var(--surface);
     color: rgb(0, 0, 0);

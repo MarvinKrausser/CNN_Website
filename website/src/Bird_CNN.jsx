@@ -3,7 +3,7 @@ import './Bird_CNN.css';
 
 function Bird_CNN() {
     const apiUrl = process.env.NODE_ENV === "development"
-        ? "http://localhost:8000"
+        ? "https://api.marvinkrausser.com"
         : "https://api.marvinkrausser.com";
 
     const [file, setFile] = useState(null);
@@ -102,7 +102,7 @@ function Bird_CNN() {
                     </div>
 
                     <div className='request-box'>
-                        <div ref={scrollRefUploadButton} className='input-box'>
+                        <div ref={scrollRefUploadButton} className='input-box-cnn'>
                             <div className='button-div'>
                                 <input disabled={loading} ref={fileInputRef} type="file" id='fileUpload' accept="image" onChange={handleImage} style={{ display: "none" }} />
                                 <label htmlFor="fileUpload" className="custom-button">

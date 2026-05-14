@@ -38,8 +38,9 @@ function SelectDropdown(props) {
             String(selectedInput) !== String(item) && (
                 <div
                     key={item}
-                    className={`review-select-item review-select-box-${indices.pop()} ${classNames}` + (i >= (values.length - (selectedInput == values.at(-1) ? 2 : 1)) ? ' last' : '')}
+                    className={`review-select-item review-select-box-${indices[indices.length - 1]} ${classNames}` + (i >= (values.length - (selectedInput == values.at(-1) ? 2 : 1)) ? ' last' : '')}
                     onClick={() => changeSelectedInput(item)}
+                    style={{gridArea:`box${indices.pop()}`}}
                 >
                     {item}
                 </div>

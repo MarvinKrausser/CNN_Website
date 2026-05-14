@@ -140,7 +140,11 @@ a:hover {
     box-sizing: content-box;
 }
 
-.input-box {
+.request-box .custom-button{
+    box-sizing: border-box;
+}
+
+.input-box-cnn {
     scroll-margin-top: 100px;
     width: min(500px, 100%);
     height: 160px;
