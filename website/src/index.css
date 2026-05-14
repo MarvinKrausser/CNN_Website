@@ -55,4 +55,5 @@ h4 {
 .site-box {
     margin-top: 150px;
     width: 100%;
+    height: fit-content;
 }

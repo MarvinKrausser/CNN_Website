@@ -1,13 +1,23 @@
 import { useState, useRef, useEffect } from 'react';
+import DropwdownFlex from './DropdownFlex';
+import DropwdownGrid from './DropdownGrid';
 
 function SelectDropdown(props) {
     const values = props.values;
     const defaultValue = props.defaultValue;
     const classNames = props.classNames;
     const changeInputParent = props.changeInputParent;
-    const [selectedInput, setselectedInput,] = useState(defaultValue);
+    const parentClass = props.parentClass;
+    const flex = props.flex;
     const [selectVisibility, setSelectVisibility] = useState(false);
     const SelectButton = useRef();
+
+    const [selectedInput, setSelectedInput] = useState(defaultValue);
+
+    const SelectMenu =
+        flex === true
+            ? DropwdownFlex
+            : DropwdownGrid;
 
     useEffect(() => {
         function handleClick(event) {
@@ -25,29 +35,24 @@ function SelectDropdown(props) {
     }, []);
 
     const changeSelectedInput = (input) => {
-        setselectedInput(input);
+        setSelectedInput(input);
         changeInputParent(input);
     };
 
 
     return (
-        <div className={`review-select-dropdown ${classNames}`} >
+        <div className={`review-select-dropdown ${classNames} ${parentClass}`} >
             <button ref={SelectButton} className={selectVisibility ? `review-select-button ${classNames} active` : `review-select-button ${classNames}`} onClick={() => { setSelectVisibility(!selectVisibility) }}>
                 {selectedInput}
             </button>
-            {selectVisibility && <div className={`review-select-menu ${classNames}`}>
-                {values.map((item, i) =>
-                    String(selectedInput) !== String(item) && (
-                        <div
-                            key={item}
-                            className={i >= (values.length - (selectedInput == values.at(-1) ? 2 : 1)) ? `review-select-item ${classNames} last` : `review-select-item ${classNames}`}
-                            onClick={() => changeSelectedInput(item)}
-                        >
-                            {item}
-                        </div>
-                    )
-                )}
-            </div>}
+            {selectVisibility &&
+                <SelectMenu
+                    classNames={classNames}
+                    changeInputParent={changeSelectedInput}
+                    values={values}
+                    selectedInput={selectedInput}
+                />}
+
         </ div>
     );
 }

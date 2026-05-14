@@ -1,11 +1,39 @@
 .input-box {
     display: flex;
-    align-items: center;
-    justify-content: center;
     gap: 80px;
     width: 100%;
-    padding: 40px;
+    grid-template-columns: repeat(1fr, 3);
+    justify-items: center;
+    align-items: center;
     height: fit-content;
+}
+
+.input-component-box {
+    display: grid;
+    width: fit-content;
+    height: fit-content;
+    grid-template-rows: 150px 150px 150px;
+    justify-items: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.description {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: flex-end;
+}
+
+.input-component {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: flex-start;
+}
+
+.description.second {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: flex-start;
 }
 
 .review-select-dropdown {
@@ -45,6 +73,13 @@
 
 .review-select-button:hover {
     border-color: white;
+}
+
+.review-select-menu.grid {
+    width: 300%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-auto-rows: 1fr;
 }
 
 .review-select-item {
