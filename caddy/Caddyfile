@@ -9,3 +9,15 @@ api.marvinkrausser.com {
 portfolio.marvinkrausser.com {
   reverse_proxy portfolio_website:8081
 }
+
+http://localhost:8080 {
+   reverse_proxy cnn_website:8080
+}
+
+http://localhost:8000 {
+  reverse_proxy cnn_api:8000
+}
+
+http://localhost:8081 {
+  reverse_proxy portfolio_website:8081
+}

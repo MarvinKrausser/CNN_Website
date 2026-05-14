@@ -3,6 +3,10 @@ import './Reviews.css';
 import SelectDropdown from './components/SelectDropdown';
 
 function Reviews() {
+    const apiUrl = process.env.NODE_ENV === "development"
+        ? "http://localhost:8000"
+        : "https://api.marvinkrausser.com";
+
     const [error, setError] = useState(null);
     const [selectedWebsite, setSelectedWebsite] = useState("Not Specified");
     const [selectedRating, setSelectedRating] = useState(1);
@@ -12,8 +16,11 @@ function Reviews() {
 
 
     const fetchReviews = async () => {
-        const response = await fetch(`api.marvinkrausser/review`, {
-            method: "GET",
+        const response = await fetch(`${apiUrl}/review`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer 1234`,
+            },
         });
 
         if (!response.ok) {
@@ -24,12 +31,20 @@ function Reviews() {
             setError(false);
         }
 
+        console.log(response);
+
         const result = await response.json();
     }
 
-    const sendReview = async (review) => {
+    const sendReview = async () => {
+        const review = {
+            "website": selectedWebsite,
+            "rating": selectedRating,
+            "text": text,
+            "created_at": "today"
+        }
 
-        const response = await fetch(`api.marvinkrausser/review`, {
+        const response = await fetch(`${apiUrl}/review`, {
             method: "POST",
             body: JSON.stringify(review),
         });
@@ -47,12 +62,10 @@ function Reviews() {
 
     const changeSelectedWebsite = (website) => {
         setSelectedWebsite(website);
-        console.log(selectedWebsite);
     };
 
     const changeSelectedRating = (rating) => {
         setSelectedRating(rating);
-        console.log(selectedRating);
     }
 
     const websites = [
@@ -75,6 +88,7 @@ function Reviews() {
     return (<>
         <div className='site-box'>
             <h1 className='site-headline'>Reviews</h1>
+            <p className='review-description'>I would greatly appreciate receiving a review. You are welcome to write it in either English or German. All fields are optional, and all reviews are submitted anonymously.</p>
 
 
 
@@ -88,7 +102,6 @@ function Reviews() {
                         defaultValue={websites.at(-1)}
                         classNames={"website"}
                         changeInputParent={changeSelectedWebsite}
-                        flex={true}
                     />
                 </div>
 
@@ -116,9 +129,13 @@ function Reviews() {
                         defaultValue={ratings.at(0)}
                         classNames={"rating"}
                         changeInputParent={changeSelectedRating}
-                        flex={false}
                     />
                 </div>
+
+                <button id='button-send' style={{ display: "none" }} onClick={sendReview} />
+                <label htmlFor="button-send" className="custom-button">
+                    Send Review
+                </label>
             </div>
         </div>
     </>)

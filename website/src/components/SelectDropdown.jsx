@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import DropwdownFlex from './DropdownFlex';
-import DropwdownGrid from './DropdownGrid';
+import './SelectDropdown.css';
 
 function SelectDropdown(props) {
     const values = props.values;
@@ -8,16 +7,10 @@ function SelectDropdown(props) {
     const classNames = props.classNames;
     const changeInputParent = props.changeInputParent;
     const parentClass = props.parentClass;
-    const flex = props.flex;
     const [selectVisibility, setSelectVisibility] = useState(false);
     const SelectButton = useRef();
 
     const [selectedInput, setSelectedInput] = useState(defaultValue);
-
-    const SelectMenu =
-        flex === true
-            ? DropwdownFlex
-            : DropwdownGrid;
 
     useEffect(() => {
         function handleClick(event) {
@@ -39,6 +32,21 @@ function SelectDropdown(props) {
         changeInputParent(input);
     };
 
+    const CreateItems = () => {
+        const indices = Array.from({ length: values.length - 1 }, (_, i) => values.length - 2 - i);
+        return values.map((item, i) =>
+            String(selectedInput) !== String(item) && (
+                <div
+                    key={item}
+                    className={`review-select-item review-select-box-${indices.pop()} ${classNames}` + (i >= (values.length - (selectedInput == values.at(-1) ? 2 : 1)) ? ' last' : '')}
+                    onClick={() => changeSelectedInput(item)}
+                >
+                    {item}
+                </div>
+            )
+        )
+    }
+
 
     return (
         <div className={`review-select-dropdown ${classNames} ${parentClass}`} >
@@ -46,12 +54,9 @@ function SelectDropdown(props) {
                 {selectedInput}
             </button>
             {selectVisibility &&
-                <SelectMenu
-                    classNames={classNames}
-                    changeInputParent={changeSelectedInput}
-                    values={values}
-                    selectedInput={selectedInput}
-                />}
+                <div className={`review-select-menu ${classNames}`}>
+                    <CreateItems />
+                </div>}
 
         </ div>
     );
