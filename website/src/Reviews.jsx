@@ -110,7 +110,7 @@ function Reviews() {
                 </div>
 
                 <div className='input-component-box'>
-                    <p className='description'>Description</p>
+                    <p className='description'>Review</p>
                     <textarea
                         autoCorrect="off"
                         autoCapitalize="off"

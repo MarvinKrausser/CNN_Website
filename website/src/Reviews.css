@@ -19,16 +19,18 @@
     display: grid;
     width: fit-content;
     height: fit-content;
-    grid-template-rows: 50px 150px 50px;
+    grid-template-rows: 50px 160px 50px;
     justify-items: center;
     align-items: center;
     margin: 60px;
+    gap: 20px;
 }
 
 .description {
     grid-column: 1;
     grid-row: 1;
     align-self: flex-end;
+    margin: 0;
 }
 
 .input-component {
