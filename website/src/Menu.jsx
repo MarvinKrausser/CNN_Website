@@ -7,6 +7,7 @@ function Menu() {
             <nav id="navbar-main">
                 <Link className='navbar-item' to="/">Homepage</Link>
                 <Link className='navbar-item' to="/bird_cnn">Birds</Link>
+                <Link className='navbar-item' to="/reviews">Reviews</Link>
             </nav>
         </>
     );

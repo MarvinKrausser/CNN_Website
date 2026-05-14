@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useRef } from "react";
+import { useState, useRef } from 'react';
 import './Bird_CNN.css';
 
 function Bird_CNN() {
@@ -86,7 +85,7 @@ function Bird_CNN() {
     return (
         <>
             <div className='site-box'>
-                <h1 id='site-headline'>Bird Species Expert</h1>
+                <h1 className='site-headline'>Bird Species Expert</h1>
                 <div className='content-box' style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}>
                     <div className='explanation-box left'>
                         <h2 style={{ color: "rgb(47, 168, 208)" }}>Explanation</h2>

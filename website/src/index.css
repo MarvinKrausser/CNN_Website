@@ -10,6 +10,11 @@ body {
     background: rgb(4, 0, 10);
     margin: 0;
     padding: 0;
+    --surface: rgb(47, 168, 208);
+}
+
+button {
+    font-size: 1rem;
 }
 
 a {
@@ -25,4 +30,29 @@ h4 {
 
 * {
     box-sizing: border-box;
+}
+
+.site-headline {
+    margin: 50px min(100px, 10vw) 50px min(100px, 10vw);
+    color: rgb(47, 168, 208);
+    font-weight: bold;
+    font-size: clamp(1rem, min(8vw, 8vh), 4rem);
+    position: relative;
+    width: fit-content;
+}
+
+.site-headline::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    height: 4px;
+    width: 100%;
+    border-radius: 20px;
+    background: rgb(47, 168, 208);
+}
+
+.site-box {
+    margin-top: 150px;
+    width: 100%;
 }

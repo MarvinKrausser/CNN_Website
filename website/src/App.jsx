@@ -7,6 +7,7 @@ import './App.css'
 import Menu from './Menu'
 import Homepage from './Homepage';
 import Bird_CNN from './Bird_CNN';
+import Reviews from './Reviews.jsx';
 
 function App() {
 
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/bird_cnn" element={<Bird_CNN />} />
+        <Route path="/reviews" element={<Reviews />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

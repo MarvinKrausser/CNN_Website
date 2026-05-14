@@ -1,0 +1,60 @@
+.input-box {
+    display: flex;
+}
+
+.review-select-dropdown {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: calc(50px + 40px * 2);
+    gap: 0px;
+    user-select: none;
+}
+
+.review-select-button {
+    width: 100%;
+    height: 50px;
+    cursor: pointer;
+    background: var(--surface);
+    border: 1px solid var(--surface);
+    outline: none;
+    color: white;
+    border-radius: 16px;
+}
+
+.review-select-button.active {
+    border-top-right-radius: 16px;
+    border-top-left-radius: 16px;
+
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-bottom: 1px solid black;
+}
+
+.review-select-button:hover {
+    border-color: white;
+}
+
+.review-select-item {
+    cursor: pointer;
+    border: 1px solid var(--surface);
+    background: var(--surface);
+    text-align: center;
+    height: 40px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0;
+}
+
+.review-select-item.last {
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+.review-select-item:hover {
+    cursor: pointer;
+    border-color: white;
+}
