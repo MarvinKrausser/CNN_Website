@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import './Reviews.css';
+import SelectDropdown from './components/SelectDropdown';
 
 function Reviews() {
     const [error, setError] = useState(null);
     const [selectedWebsite, setSelectedWebsite] = useState("Not Specified");
-    const [selectWebsiteVisibility, setSelectWebsiteVisibility] = useState(false);
-    const websiteSelectButton = useRef();
+    const [selectedRating, setSelectedRating] = useState(0);
     const [text, setText] = useState("");
+
+    const MAX_TEXT = 180;
 
 
     const fetchReviews = async () => {
@@ -47,26 +49,25 @@ function Reviews() {
         setSelectedWebsite(website);
     };
 
+    const changeSelectedRating = (rating) => {
+        setSelectedRating(rating);
+    }
+
     const websites = [
         "CNN (current)",
         "Portfolio",
         "Not Specified"
     ];
 
-    useEffect(() => {
-        function handleClick(event) {
-            if (websiteSelectButton.current && !websiteSelectButton.current.contains(event.target)
-            ) {
-                setSelectWebsiteVisibility(false);
-            }
+    const ratings = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+    const handleTextInput = (e) => {
+        const textInput = e.target.value;
+
+        if (textInput.length <= MAX_TEXT || textInput.length < text.length) {
+            setText(textInput);
         }
-
-        document.addEventListener("click", handleClick);
-
-        return () => {
-            document.removeEventListener("click", handleClick);
-        };
-    }, []);
+    };
 
 
     return (<>
@@ -74,31 +75,23 @@ function Reviews() {
             <h1 className='site-headline'>Reviews</h1>
 
             <div className='input-box'>
-                <div className='review-select-dropdown'>
-                    <button ref={websiteSelectButton} className={selectWebsiteVisibility ? "review-select-button active" : "review-select-button"} onClick={() => { setSelectWebsiteVisibility(!selectWebsiteVisibility) }}>
-                        {selectedWebsite}
-                    </button>
-                    {selectWebsiteVisibility && <div className='review-select-menu'>
-                        {websites.map((site, i) =>
-                            selectedWebsite !== site && (
-                                <div
-                                    key={site}
-                                    className={i >= (websites.length - (selectedWebsite == websites.at(-1) ? 2 : 1)) ? "review-select-item last" : "review-select-item"}
-                                    onClick={() => changeSelectedWebsite(site)}
-                                >
-                                    {site}
-                                </div>
-                            )
-                        )}
-                    </div>}
+                <SelectDropdown values={websites} defaultValue={websites.at(0)} classNames={"website"} changeInputParent={changeSelectedWebsite} />
+
+                <div className='review-text-box'>
+                    <textarea
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        className='review-text'
+                        type="text"
+                        value={text}
+                        onChange={(e) => handleTextInput(e)}
+                        placeholder="Type something..."
+                    />
+                    <p>{text.length}/{MAX_TEXT}</p>
                 </div>
 
-                <input
-                    type="text"
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    placeholder="Type something..."
-                />
+                <SelectDropdown values={ratings} defaultValue={ratings.at(0)} classNames={"rating"} changeInputParent={changeSelectedRating} />
             </div>
         </div>
     </>)
