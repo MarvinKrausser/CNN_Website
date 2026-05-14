@@ -1,7 +1,3 @@
-.button-div {
-    height: 40px;
-}
-
 .species-item {
     list-style: none;
     position: relative;
@@ -140,10 +136,6 @@ a:hover {
     box-sizing: content-box;
 }
 
-.request-box .custom-button{
-    box-sizing: border-box;
-}
-
 .input-box-cnn {
     scroll-margin-top: 100px;
     width: min(500px, 100%);
@@ -176,4 +168,8 @@ a:hover {
 
 .conten-block-text {
     text-align: center;
+}
+
+.button-div * {
+    box-sizing: border-box;
 }
