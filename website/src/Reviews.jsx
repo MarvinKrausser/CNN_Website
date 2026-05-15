@@ -39,11 +39,13 @@ function Reviews() {
     }
 
     const sendReview = async () => {
+        const date = new Date().toISOString();
+
         const review = {
             "website": selectedWebsite,
             "rating": selectedRating,
             "text": text,
-            "date": "today"
+            "date": date,
         }
 
         console.log(JSON.stringify(review));
