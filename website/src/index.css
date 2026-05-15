@@ -7,10 +7,11 @@ html {
 }
 
 body {
-    background: rgb(4, 0, 10);
+    background: var(--bg);
     margin: 0;
     padding: 0;
     --surface: rgb(47, 168, 208);
+    --bg: rgb(4, 0, 10);
 }
 
 button {

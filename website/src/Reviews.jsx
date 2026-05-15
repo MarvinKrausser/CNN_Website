@@ -12,7 +12,7 @@ function Reviews() {
     const [selectedRating, setSelectedRating] = useState(1);
     const [text, setText] = useState("");
 
-    const MAX_TEXT = 180;
+    const MAX_TEXT = 900;
 
 
     const fetchReviews = async () => {
@@ -110,21 +110,6 @@ function Reviews() {
                 </div>
 
                 <div className='input-component-box'>
-                    <p className='description'>Review</p>
-                    <textarea
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        spellCheck={false}
-                        className='review-text input-component'
-                        type="text"
-                        value={text}
-                        onChange={(e) => handleTextInput(e)}
-                        placeholder="Type something..."
-                    />
-                    <p className='description second'>{text.length}/{MAX_TEXT}</p>
-                </div>
-
-                <div className='input-component-box'>
                     <p className='description'>Rating</p>
                     <SelectDropdown
                         listClass="grid"
@@ -136,11 +121,28 @@ function Reviews() {
                     />
                 </div>
 
-                <div className='button-div'>
-                    <button id='button-send' style={{ display: "none" }} onClick={sendReview} />
-                    <label htmlFor="button-send" className="custom-button send-review">
-                        Send Review
-                    </label>
+                <div className='input-component-box'>
+                    <div className='button-div input-component'>
+                        <button id='button-send' style={{ display: "none" }} onClick={sendReview} />
+                        <label htmlFor="button-send" className="custom-button send-review">
+                            Send Review
+                        </label>
+                    </div>
+                </div>
+
+                <div className='input-component-box text'>
+                    <p className='description'>Review</p>
+                    <textarea
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        className='review-text input-component'
+                        type="text"
+                        value={text}
+                        onChange={(e) => handleTextInput(e)}
+                        placeholder="Share your Opinion"
+                    />
+                    <p className='description second'>{text.length}/{MAX_TEXT}</p>
                 </div>
             </div>
         </div>
