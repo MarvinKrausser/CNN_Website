@@ -106,7 +106,7 @@ function Reviews() {
     return (<>
         <div className='site-box'>
             <h1 className='site-headline'>Reviews</h1>
-            <p className='review-description'>I would greatly appreciate receiving a review. You are welcome to write it in either English or German. All fields are optional, and all reviews are submitted anonymously.</p>
+            <p className='review-description'>I would greatly appreciate receiving a review. You are welcome to write it in either English or German. All fields are optional and all reviews are submitted anonymously.</p>
 
 
 
