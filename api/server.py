@@ -19,7 +19,7 @@ import threading
 BUILD_PATH = "./build_models"
 IMAGE_SIZE = 64
 
-sem = threading.Semaphore(1) #adjust to performance
+sem_ai = threading.Semaphore(1)
 
 class bird_species(Enum):
     Common_Kingfisher = 0
@@ -61,7 +61,7 @@ app.add_middleware(
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    with sem:
+    with sem_ai:
         image_bytes = await file.read()
 
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
@@ -92,65 +92,59 @@ class Review(BaseModel):
     text: str
     date: str
 
+sem_db = threading.Semaphore(1)
+
 @app.get("/review")
 def get_reviews(auth=Depends(get_api_key)):
-    conn = sqlite3.connect("database/reviews.db")
-    cur = conn.cursor()
+    with sem_db:
+        conn = sqlite3.connect(
+            "database/reviews.db",
+            check_same_thread=False
+        )
+        cur = conn.cursor()
 
-    cur.execute("""
-    SELECT * FROM reviews;
-    """)
+        cur.execute("""
+        SELECT * FROM reviews;
+        """)
 
-    data = cur.fetchall()
+        data = cur.fetchall()
 
-    print(data)
+        print(data)
 
-    conn.commit()
-    conn.close()
-    return {"data": data}
+        conn.close()
+        return {"data": data}
 
 @app.post("/review")
 def post_review(review: Review):
-    conn = sqlite3.connect("database/reviews.db")
-    cur = conn.cursor()
+    with sem_db:
+        conn = sqlite3.connect(
+            "database/reviews.db",
+            check_same_thread=False
+        )
+        cur = conn.cursor()
 
-    cur.execute("""
-        INSERT INTO reviews (website, rating, text, created_at)
-        VALUES (?, ?, ?, ?)
-    """, (review.website, review.rating, review.text, review.date))
+        cur.execute("""
+            INSERT INTO reviews (website, rating, text, created_at)
+            VALUES (?, ?, ?, ?)
+        """, (review.website, review.rating, review.text, review.date))
 
-    conn.commit()
-    conn.close()
-    return {"status": "ok"}
-
-@app.put("/review")
-def put_review(auth=Depends(get_api_key)):
-    conn = sqlite3.connect("database/reviews.db")
-    cur = conn.cursor()
-
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS reviews (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        website TEXT,
-        rating INTEGER,
-        text TEXT,
-        created_at TEXT
-    )
-    """)
-
-    conn.commit()
-    conn.close()
-    return {"status": "ok"}
+        conn.commit()
+        conn.close()
+        return {"status": "ok"}
 
 @app.delete("/review")
 def delete_review(auth=Depends(get_api_key)):
-    conn = sqlite3.connect("database/reviews.db")
-    cur = conn.cursor()
+    with sem_db:
+        conn = sqlite3.connect(
+            "database/reviews.db",
+            check_same_thread=False
+        )
+        cur = conn.cursor()
 
-    cur.execute("""
-        DELETE FROM reviews;
-    """)
+        cur.execute("""
+            DELETE FROM reviews;
+        """)
 
-    conn.commit()
-    conn.close()
-    return {"status": "ok"}
+        conn.commit()
+        conn.close()
+        return {"status": "ok"}
