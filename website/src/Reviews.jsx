@@ -11,6 +11,8 @@ function Reviews() {
     const [selectedWebsite, setSelectedWebsite] = useState("Not Specified");
     const [selectedRating, setSelectedRating] = useState(1);
     const [text, setText] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [sendSuccess, setSendSuccess] = useState(false);
 
     const MAX_TEXT = 900;
 
@@ -46,23 +48,35 @@ function Reviews() {
 
         console.log(JSON.stringify(review));
 
-        const response = await fetch(`${apiUrl}/review`, {
-            method: "POST",
-            body: JSON.stringify(review),
-            headers: {
-                "Content-Type": "application/json"
+        setLoading(true);
+        setError(false);
+        setSendSuccess(false);
+
+        try {
+            const response = await fetch(`${apiUrl}/review`, {
+                method: "POST",
+                body: JSON.stringify(review),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (!response.ok) {
+                setError(true);
+                return;
             }
-        });
+            else {
+                setError(false);
+            }
 
-        if (!response.ok) {
+            setSendSuccess(true);
+            const result = await response.json();
+        } catch (e) {
             setError(true);
-            return;
         }
-        else {
-            setError(false);
+        finally {
+            setLoading(false);
         }
-
-        const result = await response.json();
     }
 
     const changeSelectedWebsite = (website) => {
@@ -127,6 +141,12 @@ function Reviews() {
                         <label htmlFor="button-send" className="custom-button send-review">
                             Send Review
                         </label>
+
+                        <div className='loader-box'>
+                            {loading && <div className="loader2"></div>}
+                            {sendSuccess && <p className='description second'>Review sent</p>}
+                            {error && <p className='description second'>Error</p>}
+                        </div>
                     </div>
                 </div>
 

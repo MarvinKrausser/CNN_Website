@@ -209,3 +209,41 @@
 .review-text::placeholder {
     color: white;
 }
+
+.loader-box{
+    height: 55px;
+    width: 86px;
+    margin-top: 30px;
+    justify-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* HTML: <div class="loader"></div> */
+.loader2 {
+  display: inline-flex;
+  gap: 5px;
+  animation: l3-0 1s infinite;
+  transform-origin: 50% calc(100% + 2.5px);
+}
+.loader2:before,
+.loader2:after {
+  content: "";
+  width: 25px;
+  aspect-ratio: 1;
+  box-shadow: 0 0 0 3px inset #fff;
+}
+.loader2:after {
+  transform-origin: -2.5px calc(100% + 2.5px);
+  animation: l3-1 1s infinite;
+}
+@keyframes l3-1 {
+  50%,
+  100% {transform:rotate(180deg)}
+}
+@keyframes l3-0 {
+  0%,
+  50%  {transform:rotate(0deg)}
+  100% {transform:rotate(90deg)}
+}
