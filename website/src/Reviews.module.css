@@ -1,5 +1,5 @@
 .review-description {
-    margin: 70px;
+    margin: 20px 70px 70px 70px;
     font-size: 1.1rem;
     width: min(800px, 70vw);
     height: fit-content;
