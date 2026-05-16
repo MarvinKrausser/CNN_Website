@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import './Bird_CNN.css';
+import styles from './Bird_CNN.module.css';
 
 function Bird_CNN() {
     const apiUrl = process.env.NODE_ENV === "development"
@@ -86,39 +86,79 @@ function Bird_CNN() {
         <>
             <div className='site-box'>
                 <h1 className='site-headline'>Bird Species Expert</h1>
-                <div className='content-box' style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}>
-                    <div className='explanation-box left'>
+                <div
+                    className={styles["content-box"]}
+                    style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        justifyContent: "center"
+                    }}
+                >
+                    <div className={`${styles["explanation-box"]} ${styles.left}`}>
                         <h2 style={{ color: "rgb(47, 168, 208)" }}>Explanation</h2>
-                        <span>Select and upload an image to our bird classification model. The system will return a predicted species along with a confidence score indicating how certain the model is about its prediction. Please note that the model may not always produce correct classifications. The supported Species are:</span>
-                        <ul className='species-list'>
-                            <li className='species-item'>Common Kingfisher</li>
-                            <li className='species-item'>Common Myna</li>
-                            <li className='species-item'>House Crow</li>
-                            <li className='species-item'>Indian Peacock</li>
-                            <li className='species-item'>Indian Pitta</li>
-                            <li className='species-item'>Ruddy Shelduck</li>
-                            <li className='species-item'>Sarus Crane</li>
+
+                        <span>
+                            Select and upload an image to our bird classification model.
+                            The system will return a predicted species along with a
+                            confidence score indicating how certain the model is about
+                            its prediction. Please note that the model may not always
+                            produce correct classifications. The supported Species are:
+                        </span>
+
+                        <ul className={styles["species-list"]}>
+                            <li className={styles["species-item"]}>Common Kingfisher</li>
+                            <li className={styles["species-item"]}>Common Myna</li>
+                            <li className={styles["species-item"]}>House Crow</li>
+                            <li className={styles["species-item"]}>Indian Peacock</li>
+                            <li className={styles["species-item"]}>Indian Pitta</li>
+                            <li className={styles["species-item"]}>Ruddy Shelduck</li>
+                            <li className={styles["species-item"]}>Sarus Crane</li>
                         </ul>
                     </div>
 
-                    <div className='request-box'>
-                        <div ref={scrollRefUploadButton} className='input-box-cnn'>
-                            <div className='button-div'>
-                                <input disabled={loading} ref={fileInputRef} type="file" id='fileUpload' accept="image" onChange={handleImage} style={{ display: "none" }} />
-                                <label htmlFor="fileUpload" className="custom-button">
+                    <div className={styles["request-box"]}>
+                        <div
+                            ref={scrollRefUploadButton}
+                            className={styles["input-box-cnn"]}
+                        >
+                            <div className={styles["button-div"]}>
+                                <input
+                                    disabled={loading}
+                                    ref={fileInputRef}
+                                    type="file"
+                                    id="fileUpload"
+                                    accept="image"
+                                    onChange={handleImage}
+                                    style={{ display: "none" }}
+                                />
+
+                                <label
+                                    htmlFor="fileUpload"
+                                    className="custom-button"
+                                >
                                     Select Image
                                 </label>
                             </div>
-                            <div className='button-div'>
-                                <button id='button-send' onClick={sendImage} style={{ display: "none" }} disabled={loading} />
-                                <label htmlFor="button-send" className="custom-button inactive" ref={uploadButton}>
+
+                            <div className={styles["button-div"]}>
+                                <button
+                                    id="button-send"
+                                    onClick={sendImage}
+                                    style={{ display: "none" }}
+                                    disabled={loading}
+                                />
+
+                                <label
+                                    htmlFor="button-send"
+                                    className="custom-button inactive"
+                                    ref={uploadButton}
+                                >
                                     Ask Expert
                                 </label>
                             </div>
-
                         </div>
 
-                        <div className='image-box'>
+                        <div className={styles["image-box"]}>
                             <img
                                 onClick={handleImageDivClick}
                                 disabled={loading}
@@ -127,28 +167,68 @@ function Bird_CNN() {
                             />
                         </div>
 
-                        <div ref={scrollRefClassifiction} className='loader-container'>
-                            {loading && <div className='loader'></div>}
+                        <div
+                            ref={scrollRefClassifiction}
+                            className={styles["loader-container"]}
+                        >
+                            {loading && <div className={styles.loader}></div>}
                         </div>
 
+                        <div className={styles["response-block"]}>
+                            <div
+                                className={`${styles["content-block"]} ${styles.class}`}
+                            >
+                                <h3 className={styles["conten-block-text"]}>
+                                    Bird Species:
+                                </h3>
 
-                        <div className='response-block'>
-                            <div className='content-block class'>
-                                <h3 className='conten-block-text'>Bird Species: </h3>
-                                {birdClass && <p id='bird-class-text' className='conten-block-text'>{birdClass}</p>}
+                                {birdClass && (
+                                    <p
+                                        id="bird-class-text"
+                                        className={styles["conten-block-text"]}
+                                    >
+                                        {birdClass}
+                                    </p>
+                                )}
                             </div>
-                            <div className='content-block confidence'>
-                                <h4 className='conten-block-text'>Model Confidence: </h4>
-                                {confidence && <p id='bird-confidence-text' className='conten-block-text'>{confidence}</p>}
+
+                            <div
+                                className={`${styles["content-block"]} ${styles.confidence}`}
+                            >
+                                <h4 className={styles["conten-block-text"]}>
+                                    Model Confidence:
+                                </h4>
+
+                                {confidence && (
+                                    <p
+                                        id="bird-confidence-text"
+                                        className={styles["conten-block-text"]}
+                                    >
+                                        {confidence}
+                                    </p>
+                                )}
                             </div>
-                            {error && <h4 className='conten-block-text'>An Error has uccured. Please try again later.</h4>}
+
+                            {error && (
+                                <h4 className={styles["conten-block-text"]}>
+                                    An Error has uccured. Please try again later.
+                                </h4>
+                            )}
                         </div>
                     </div>
 
-                    <div className='explanation-box right'>
+                    <div className={`${styles["explanation-box"]} ${styles.right}`}>
                         <h3>Model Architecture</h3>
+
                         <div style={{ display: "inline" }}>
-                            <span>The classification model is based on a convolutional neural network (CNN). The architecture consists of eight skip blocks, each containing three convolutional layers, followed by batch normalization after each convolution and a dropout rate of 0.3. The dataset comprised seven classes, with 1,200 images per class.</span>
+                            <span>
+                                The classification model is based on a convolutional
+                                neural network (CNN). The architecture consists of eight
+                                skip blocks, each containing three convolutional layers,
+                                followed by batch normalization after each convolution
+                                and a dropout rate of 0.3. The dataset comprised seven
+                                classes, with 1,200 images per class.
+                            </span>
                         </div>
                     </div>
                 </div>
