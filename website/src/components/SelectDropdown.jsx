@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import './SelectDropdown.css';
 
 function SelectDropdown(props) {
     const values = props.values;
@@ -7,6 +6,7 @@ function SelectDropdown(props) {
     const classNames = props.classNames;
     const changeInputParent = props.changeInputParent;
     const parentClass = props.parentClass;
+    const styles = props.styles;
     const [selectVisibility, setSelectVisibility] = useState(false);
     const SelectButton = useRef();
 
@@ -38,7 +38,7 @@ function SelectDropdown(props) {
             String(selectedInput) !== String(item) && (
                 <div
                     key={item}
-                    className={`review-select-item review-select-box-${indices[indices.length - 1]} ${classNames}` + (i >= (values.length - (selectedInput == values.at(-1) ? 2 : 1)) ? ' last' : '')}
+                    className={`${styles["review-select-item"]} ${styles[`review-select-box-${indices[indices.length - 1]}`]} ${classNames}` + (i >= (values.length - (selectedInput == values.at(-1) ? 2 : 1)) ? ` ${styles.last}` : '')}
                     onClick={() => changeSelectedInput(item)}
                     style={{gridArea:`box${indices.pop()}`}}
                 >
@@ -50,12 +50,12 @@ function SelectDropdown(props) {
 
 
     return (
-        <div className={`review-select-dropdown ${classNames} ${parentClass}`} >
-            <button ref={SelectButton} className={selectVisibility ? `review-select-button ${classNames} active` : `review-select-button ${classNames}`} onClick={() => { setSelectVisibility(!selectVisibility) }}>
+        <div className={`${styles["review-select-dropdown"]} ${classNames} ${parentClass}`} >
+            <button ref={SelectButton} className={selectVisibility ? `${styles["review-select-button"]} ${classNames} ${styles.active}` : `${styles["review-select-button"]} ${classNames}`} onClick={() => { setSelectVisibility(!selectVisibility) }}>
                 {selectedInput}
             </button>
             {selectVisibility &&
-                <div className={`review-select-menu ${classNames}`}>
+                <div className={`${styles["review-select-menu"]} ${classNames}`} style={{display: "grid"}}>
                     <CreateItems />
                 </div>}
 

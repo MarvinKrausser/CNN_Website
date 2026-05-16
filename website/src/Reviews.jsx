@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import './Reviews.css';
+import styles from './Reviews.module.css';
 import SelectDropdown from './components/SelectDropdown';
 
 function Reviews() {
@@ -108,63 +108,87 @@ function Reviews() {
     return (<>
         <div className='site-box'>
             <h1 className='site-headline'>Reviews</h1>
-            <p className='review-description'>I would greatly appreciate receiving a review. You are welcome to write it in either English or German. All fields are optional and all reviews are submitted anonymously.</p>
+            <p className={styles["review-description"]}>I would greatly appreciate receiving a review. You are welcome to write it in either English or German. All fields are optional and all reviews are submitted anonymously.</p>
 
 
 
-            <div className='input-box'>
-                <div className='input-component-box'>
-                    <p className='description'>Website</p>
+            <div className={styles["input-box"]}>
+                <div className={styles["input-component-box"]}>
+                    <p className={styles.description}>Website</p>
+
                     <SelectDropdown
-                        listClass="flex"
-                        parentClass="input-component"
+                        styles={styles}
+                        parentClass={styles["input-component"]}
                         values={websites}
                         defaultValue={websites.at(-1)}
-                        classNames={"website"}
+                        classNames={styles.website}
                         changeInputParent={changeSelectedWebsite}
                     />
                 </div>
 
-                <div className='input-component-box'>
-                    <p className='description'>Rating</p>
+                <div className={styles["input-component-box"]}>
+                    <p className={styles.description}>Rating</p>
+
                     <SelectDropdown
-                        listClass="grid"
-                        parentClass="input-component"
+                        styles={styles}
+                        parentClass={styles["input-component"]}
                         values={ratings}
                         defaultValue={ratings.at(0)}
-                        classNames={"rating"}
+                        classNames={styles.rating}
                         changeInputParent={changeSelectedRating}
                     />
                 </div>
 
-                <div className='input-component-box'>
-                    <div className='button-div input-component'>
-                        <button id='button-send' style={{ display: "none" }} onClick={sendReview} />
-                        <label htmlFor="button-send" className="custom-button send-review">
+                <div className={styles["input-component-box"]}>
+                    <div className={`${styles["button-div"]} ${styles["input-component"]}`}>
+                        <button
+                            id="button-send"
+                            style={{ display: "none" }}
+                            onClick={sendReview}
+                        />
+
+                        <label
+                            htmlFor="button-send"
+                            className={`custom-button ${styles["send-review"]}`}
+                        >
                             Send Review
                         </label>
 
-                        <div className='loader-box'>
-                            {loading && <div className="loader2"></div>}
-                            {sendSuccess && <p className='description second'>Review sent</p>}
-                            {error && <p className='description second'>Error</p>}
+                        <div className={styles["loader-box"]}>
+                            {loading && <div className={styles.loader2}></div>}
+
+                            {sendSuccess && (
+                                <p className={`${styles.description} ${styles.second}`}>
+                                    Review sent
+                                </p>
+                            )}
+
+                            {error && (
+                                <p className={`${styles.description} ${styles.second}`}>
+                                    Error
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
 
-                <div className='input-component-box text'>
-                    <p className='description'>Review</p>
+                <div className={`${styles["input-component-box"]} ${styles.text}`}>
+                    <p className={styles.description}>Review</p>
+
                     <textarea
                         autoCorrect="off"
                         autoCapitalize="off"
                         spellCheck={false}
-                        className='review-text input-component'
+                        className={`${styles["review-text"]} ${styles["input-component"]}`}
                         type="text"
                         value={text}
                         onChange={(e) => handleTextInput(e)}
                         placeholder="Share your Opinion"
                     />
-                    <p className='description second'>{text.length}/{MAX_TEXT}</p>
+
+                    <p className={`${styles.description} ${styles.second}`}>
+                        {text.length}/{MAX_TEXT}
+                    </p>
                 </div>
             </div>
         </div>
