@@ -12,11 +12,11 @@ from PIL import Image
 import io
 import torch.nn.functional as F
 
-from bird_cnn import Bird_CNN
+from bird_cnn.bird_cnn import Bird_CNN
 
 import threading
 
-BUILD_PATH = "./build_models"
+BUILD_PATH = "../build_models"
 IMAGE_SIZE = 64
 
 sem_ai = threading.Semaphore(1)
@@ -78,7 +78,7 @@ async def predict(file: UploadFile = File(...)):
         }
 
 
-load_dotenv("database/.env")
+load_dotenv("../database/.env")
 API_KEY = os.getenv("API_KEY")
 
 def get_api_key(authorization: str = Header(None)):

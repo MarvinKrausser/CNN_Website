@@ -6,13 +6,13 @@ from torch.utils.data import DataLoader, random_split
 import matplotlib.pyplot as plt
 
 from util import TransformedSubset, visualizeData
-from bird_cnn import Bird_CNN, sample, trainCNN
+from .bird_cnn import Bird_CNN, sample, trainCNN
 
 from enum import Enum
 
 from PIL import Image
 
-SAVE_PATH = "./saved_models"
+SAVE_PATH = "../saved_models"
 IMAGE_SIZE = 128
 
 class bird_species(Enum):
