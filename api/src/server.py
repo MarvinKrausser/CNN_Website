@@ -78,7 +78,7 @@ async def predict(file: UploadFile = File(...)):
         }
 
 
-load_dotenv("../database/.env")
+load_dotenv("./database/.env")
 API_KEY = os.getenv("API_KEY")
 DATABASE = "../database/reviews.db"
 
