@@ -12,7 +12,7 @@ from PIL import Image
 import io
 import torch.nn.functional as F
 
-from bird_cnn.bird_cnn import Bird_CNN
+from src.bird_cnn.bird_cnn import Bird_CNN
 
 import threading
 
