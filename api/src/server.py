@@ -80,6 +80,7 @@ async def predict(file: UploadFile = File(...)):
 
 load_dotenv("../database/.env")
 API_KEY = os.getenv("API_KEY")
+DATABASE = "../database/reviews.db"
 
 def get_api_key(authorization: str = Header(None)):
     if authorization != f"Bearer {API_KEY}":
@@ -98,7 +99,7 @@ sem_db = threading.Semaphore(1)
 def get_reviews(auth=Depends(get_api_key)):
     with sem_db:
         conn = sqlite3.connect(
-            "database/reviews.db",
+            DATABASE,
             check_same_thread=False
         )
         cur = conn.cursor()
@@ -118,7 +119,7 @@ def get_reviews(auth=Depends(get_api_key)):
 def post_review(review: Review):
     with sem_db:
         conn = sqlite3.connect(
-            "database/reviews.db",
+            DATABASE,
             check_same_thread=False
         )
         cur = conn.cursor()
@@ -136,7 +137,7 @@ def post_review(review: Review):
 def delete_review(auth=Depends(get_api_key)):
     with sem_db:
         conn = sqlite3.connect(
-            "database/reviews.db",
+            DATABASE,
             check_same_thread=False
         )
         cur = conn.cursor()

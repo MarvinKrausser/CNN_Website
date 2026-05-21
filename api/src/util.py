@@ -1,5 +1,3 @@
-from PIL import Image
-import os
 from matplotlib import pyplot as plt
 import torch
 
@@ -26,7 +24,6 @@ def visualizeData(dataset):
     for i in range(4):
         img = images[i]
 
-        # Convert tensor shape from [C,H,W] -> [H,W,C]
         img = img.permute(1, 2, 0)
 
         plt.figure(figsize=(3,3))

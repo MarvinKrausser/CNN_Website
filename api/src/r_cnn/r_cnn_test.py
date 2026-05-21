@@ -1,21 +1,12 @@
-import json
 import os
-import cv2
-from matplotlib import pyplot as plt
-import numpy as np
 from torch import tensor
 import torch
 from torch.utils.data import DataLoader
-from torchvision import transforms
-from torchvision.transforms import ToTensor, functional
-import torchvision.transforms.functional as TF
-from tqdm import tqdm
+from torchvision.transforms import ToTensor
 import torch.nn as nn
-import torch.nn.functional as F
 
 from .r_cnn import ObjectDetectionCNN, train, eval
 from .cocoDetectionDataset import CocoDetectionDataset
-import random
 
 SAVE_PATH = "./saved_models"
 PADDING = 20
