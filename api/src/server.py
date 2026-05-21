@@ -80,7 +80,7 @@ async def predict(file: UploadFile = File(...)):
 
 load_dotenv("./database/.env")
 API_KEY = os.getenv("API_KEY")
-DATABASE = "../database/reviews.db"
+DATABASE = "./database/reviews.db"
 
 def get_api_key(authorization: str = Header(None)):
     if authorization != f"Bearer {API_KEY}":
