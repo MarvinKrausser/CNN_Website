@@ -16,7 +16,7 @@ from src.bird_cnn.bird_cnn import Bird_CNN
 
 import threading
 
-BUILD_PATH = "../build_models"
+BUILD_PATH = "./build_models"
 IMAGE_SIZE = 64
 
 sem_ai = threading.Semaphore(1)
