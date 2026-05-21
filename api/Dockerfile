@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src .
 COPY start_server.sh .
+COPY build_models .
 
 RUN chmod +x start_server.sh
 
