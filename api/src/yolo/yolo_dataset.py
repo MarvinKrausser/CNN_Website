@@ -1,3 +1,4 @@
+import math
 import os
 import torch
 from PIL import Image
@@ -59,10 +60,10 @@ class YoloDataset(Dataset):
             xmin, ymin, width, height = obj['bbox']
             xmin, ymin, width, height = float(xmin), float(ymin), float(width), float(height)
 
-            xmin = xmin * scale_w
-            ymin = ymin * scale_h
-            xmax = (xmin + width * scale_w)
-            ymax = (ymin + height * scale_h)
+            xmin = math.ceil(xmin * scale_w)
+            ymin = math.ceil(ymin * scale_h)
+            xmax = math.floor(xmin + max(width * scale_w, 1))
+            ymax = math.floor(ymin + max(height * scale_h, 1))
 
             boxes.append([xmin, ymin, xmax, ymax])
             labels.append(obj['category_id'] - 1)
@@ -81,12 +82,12 @@ class YoloDataset(Dataset):
                                               img_h=self.img_size, S=self.grid, cell_i=x, cell_j=y):
                         
                         class_one_hot = one_hot(label, num_labels)
-                        targets[x, y, 0] = box[0]
-                        targets[x, y, 1] = box[1]
-                        targets[x, y, 2] = box[2]
-                        targets[x, y, 3] = box[3]
-                        targets[x, y, 4] = 1
-                        for i in range(len(class_one_hot)):
+                        targets[x, y, 0] = box[0]  #x
+                        targets[x, y, 1] = box[1]  #y
+                        targets[x, y, 2] = box[2]  #w
+                        targets[x, y, 3] = box[3]  #h
+                        targets[x, y, 4] = 1       #confidence
+                        for i in range(len(class_one_hot)):  #label
                             targets[x, y, i + 5] = class_one_hot[i]
 
                         del ground_truth[i]
