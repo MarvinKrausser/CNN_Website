@@ -4,7 +4,7 @@ import torch
 import torchvision.transforms.functional as TF
 from tqdm import tqdm
 import torch.nn as nn
-from src.util import iou, visualizeImage
+from util import iou, visualizeImage
 import random
 import torch.nn.functional as F
 

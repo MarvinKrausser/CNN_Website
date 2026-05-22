@@ -12,13 +12,16 @@ class YoloLoss(nn.Module):
         target_boxes = targets[..., :4]
         target_conf = targets[..., 4]
         target_classes = targets[..., 5:]
+
+        obj_mask = targets[..., 4] == 1
+        noobj_mask = targets[..., 4] == 0
         
-        box_loss = lambda_coord * torch.mean((pred_boxes - target_boxes) ** 2)
+        box_loss = lambda_coord * torch.mean((pred_boxes[obj_mask] - target_boxes[obj_mask]) ** 2)
 
-        obj_loss = torch.mean((pred_conf[target_conf == 1] - target_conf[target_conf == 1]) ** 2)
-        noobj_loss = lambda_noobj * torch.mean((pred_conf[target_conf == 0]) ** 2)
+        obj_loss = torch.mean((pred_conf[obj_mask] - target_conf[obj_mask]) ** 2)
+        noobj_loss = lambda_noobj * torch.mean((pred_conf[noobj_mask]) ** 2)
 
-        class_loss = torch.mean((pred_classes[target_conf == 1] - target_classes[target_conf == 1]) ** 2)
+        class_loss = torch.mean((pred_classes[obj_mask] - target_classes[obj_mask]) ** 2)
 
         total_loss = box_loss + obj_loss + noobj_loss + class_loss
         return total_loss

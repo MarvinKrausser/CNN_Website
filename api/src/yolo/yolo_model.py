@@ -30,7 +30,8 @@ class Yolo_model(nn.Module):
             nn.BatchNorm2d(c_hidden),
             nn.LeakyReLU(),
             nn.Flatten(),
-            nn.Linear(in_features=img_size*img_size*c_hidden, out_features=grid*grid*(boxes*5+labels))
+            nn.Linear(in_features=img_size*img_size*c_hidden, out_features=grid*grid*(boxes*5+labels)),
+            nn.Dropout(0.3)
         )
 
     def forward(self, x):
