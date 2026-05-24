@@ -1,5 +1,9 @@
 from matplotlib import pyplot as plt
 import torch
+from tqdm import tqdm
+from torch.utils.data import DataLoader
+import time
+import multiprocessing as mp
 
 class TransformedSubset(torch.utils.data.Dataset):
     def __init__(self, subset, transform=None):
@@ -56,3 +60,15 @@ def iou(boxA, boxB):
     union = boxA_area + boxB_area - inter_area
 
     return inter_area / union if union > 0 else 0
+
+def test_workers_speed(dataset, model):
+    device = next(model.parameters()).device
+    for num_workers in range(0, mp.cpu_count(), 2):  
+        train_loader = DataLoader(dataset,shuffle=True,num_workers=num_workers,batch_size=16,pin_memory=True)
+        start = time.time()
+        for _ in range(2):
+            for images, _  in tqdm(train_loader, leave=False):
+                images = images.to(device)
+                _ = model(images)
+        end = time.time()
+        print("Finish with:{} seconds, num_workers={}".format(int(end - start), num_workers))

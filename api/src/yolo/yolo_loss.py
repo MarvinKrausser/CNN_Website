@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class YoloLoss(nn.Module):
     def __init__(self):
@@ -15,13 +16,41 @@ class YoloLoss(nn.Module):
 
         obj_mask = targets[..., 4] == 1
         noobj_mask = targets[..., 4] == 0
+
+
+        if obj_mask.any():
+            box_loss = F.mse_loss(
+                pred_boxes[obj_mask],
+                target_boxes[obj_mask],
+                reduction="mean"
+            )
+        else:
+            box_loss = torch.tensor(0.0, device=predictions.device)
+
+        box_loss = lambda_coord * box_loss
+
+
+        obj_loss = F.mse_loss(
+            pred_conf[obj_mask],
+            target_conf[obj_mask],
+            reduction="mean"
+        ) if obj_mask.any() else torch.tensor(0.0, device=predictions.device)
+
+        noobj_loss = F.mse_loss(
+            pred_conf[noobj_mask],
+            target_conf[noobj_mask],
+            reduction="mean"
+        ) if noobj_mask.any() else torch.tensor(0.0, device=predictions.device)
+
+        noobj_loss = lambda_noobj * noobj_loss
+
+
+        class_loss = F.binary_cross_entropy_with_logits(
+            pred_classes[obj_mask],
+            target_classes[obj_mask]
+        ) if obj_mask.any() else torch.tensor(0.0, device=predictions.device)
+
         
-        box_loss = lambda_coord * torch.mean((pred_boxes[obj_mask] - target_boxes[obj_mask]) ** 2)
-
-        obj_loss = torch.mean((pred_conf[obj_mask] - target_conf[obj_mask]) ** 2)
-        noobj_loss = lambda_noobj * torch.mean((pred_conf[noobj_mask]) ** 2)
-
-        class_loss = torch.mean((pred_classes[obj_mask] - target_classes[obj_mask]) ** 2)
-
         total_loss = box_loss + obj_loss + noobj_loss + class_loss
+
         return total_loss
