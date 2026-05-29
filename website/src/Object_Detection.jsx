@@ -116,6 +116,7 @@ function Object_Detection() {
     return (
         <div className='site-box'>
             <h1 className='site-headline'>Face Detection</h1>
+            <p>Work in Progress</p>
             <div id={styles.container}>
                 <video autoPlay={true} ref={videoRef} style={{ display: "none" }}></video>
                 <canvas ref={canvasRef} width={1000} height={800} />
