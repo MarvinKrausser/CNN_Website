@@ -12,9 +12,9 @@ from PIL import Image
 import io
 import torch.nn.functional as F
 
-from yolo.train_yolo_faces import convert_prediction
-from yolo.yolo_model import Yolo_model
-from bird_cnn.bird_cnn import Bird_CNN
+from app.src.yolo.train_yolo_faces import convert_prediction
+from app.src.yolo.yolo_model import Yolo_model
+from app.src.bird_cnn.bird_cnn import Bird_CNN
 
 import threading
 
