@@ -93,8 +93,31 @@ function Object_Detection() {
         }, "image/jpeg", 0.9);
     };
 
+    useEffect(() => {
+    const socket = new WebSocket("wss://api.marvinkrausser.com/predict_face");
 
-    setInterval(captureImage, 100);
+    socket.onopen = () => {
+      console.log("Connected");
+      socket.send("Hello server!");
+    };
+
+    socket.onmessage = (event) => {
+      setMessages((prev) => [...prev, event.data]);
+    };
+
+    socket.onerror = (err) => {
+      console.error("WebSocket error:", err);
+    };
+
+    socket.onclose = () => {
+      console.log("Disconnected");
+    };
+
+    // cleanup when component unmounts
+    return () => {
+      socket.close();
+    };
+  }, []);
 
     return (
         <div className='site-box'>
