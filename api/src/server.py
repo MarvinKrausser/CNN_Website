@@ -2,11 +2,13 @@ from enum import Enum
 import os
 import sqlite3
 
+import cv2
 from dotenv import load_dotenv
+import numpy as np
 from pydantic import BaseModel
 import torch
 from torchvision import transforms
-from fastapi import Depends, FastAPI, File, HTTPException, Header, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Header, UploadFile, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
@@ -95,17 +97,23 @@ async def predict(file: UploadFile = File(...)):
             "confidence": confidence.item()
         }
     
-@app.post("/predict_face")
-async def predict_face(file: UploadFile = File(...)):
-    with sem_ai:
-        image_bytes = await file.read()
+@app.websocket("/predict_face")
+async def predict_face(websocket: WebSocket):
+    await websocket.accept()
 
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        H, W = image.size
+    while True:
+        jpg_bytes = await websocket.receive_bytes()
+
+        np_arr = np.frombuffer(jpg_bytes, np.uint8)
+        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+        H, W, _ = frame.shape
         scale_w = W / IMAGE_SIZE_YOLO
         scale_h = H / IMAGE_SIZE_YOLO
-        image = transform_face(image).unsqueeze(0).to(device)
 
+        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        image = transform_face(image).unsqueeze(0).to(device)
         with torch.no_grad():
             pred = modeL_face(image)
             bboxes, _, _ = convert_prediction(pred.squeeze(0), image.squeeze(0), threshold=0.9)
@@ -118,9 +126,9 @@ async def predict_face(file: UploadFile = File(...)):
                 ymax = int(bbox[3] * scale_h)
                 boxes_to_send.append([xmin, ymin, xmax, ymax])
 
-        return {
+        await websocket.send_json({
             "bboxes": boxes_to_send
-        }
+        })
 
 
 load_dotenv("./database/.env")

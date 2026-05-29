@@ -2,25 +2,17 @@ import os
 
 import cv2
 from tqdm import tqdm
-from yolo_dataset import YoloDataset, turn_image_centered
+from yolo_dataset import YoloDataset
 from yolo_model import train, Yolo_model, sample
 from yolo_loss import YoloLoss
-from src.util import TransformedSubset, test_workers_speed, visualizeImage
+from util import TransformedSubset, test_workers_speed, visualizeImage
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets
 import torch
 from torchvision.utils import draw_bounding_boxes
 import torch.nn.functional as F
 
-def xy_center_to_edges(xcenter, ycenter, width, height):
-    width = max(width, 1)
-    height = max(height, 1)
-
-    x = xcenter - (width / 2)
-    y = ycenter - (height / 2)
-
-    return [x, y, x + width, y + height]
-
+from yolo_model_production import convert_prediction
 
 def view_data(dataset):
     dataloader = DataLoader(dataset=dataset, batch_size=1, shuffle=False)
@@ -50,35 +42,6 @@ def visualize_boxes(label, image, threshold=0.95):
     image = draw_bounding_boxes(image, grids_to_draw_obj, colors=(0, 0, 255))
     image = draw_bounding_boxes(image, boxes_to_draw, colors=(255, 0, 0))
     visualizeImage(image)
-
-def convert_prediction(label, image, threshold=0.9):
-    image = image.clone().detach()
-    label = label.clone().detach()
-
-    image_size = image.shape[1]
-    grid_number = label.shape[0]
-    grid_size = image_size / grid_number
-
-    boxes_to_draw = []
-    grids_to_draw_obj = []
-    grids_to_draw_noobj = []
-    for x in range(label.shape[0]):
-        for y in range(label.shape[1]):
-            if label[x, y, 4].item() < threshold:
-                grids_to_draw_noobj.append([x*grid_size, y*grid_size, (x+1)*grid_size, (y+1)*grid_size]) #xmin, ymin, xmax, ymax
-                continue
-            grids_to_draw_obj.append([x*grid_size, y*grid_size, (x+1)*grid_size, (y+1)*grid_size]) #xmin, ymin, xmax, ymax
-
-            boxx = label[x, y, 0] * (image_size / grid_number)
-            boxy = label[x, y, 1] * (image_size / grid_number)
-
-            boxw = label[x, y, 2] * image_size
-            boxh = label[x, y, 3] * image_size
-
-            boxx, boxy = turn_image_centered(x=boxx, y=boxy, img_w=image_size, img_h=image_size, S=grid_number, cell_i=x, cell_j=y)
-
-            boxes_to_draw.append(xy_center_to_edges(boxx, boxy, boxw, boxh)) #xmin, ymin, xmax, ymax
-    return boxes_to_draw, grids_to_draw_obj, grids_to_draw_noobj
 
 def use_webcam(grid, img_size):
     # 0 = default webcam

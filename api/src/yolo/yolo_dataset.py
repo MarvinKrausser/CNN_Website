@@ -37,15 +37,6 @@ def turn_grid_centered(x, y, img_w, img_h, S, cell_i, cell_j):
 
     return x - cell_border_w, y - cell_border_h
 
-def turn_image_centered(x, y, img_w, img_h, S, cell_i, cell_j):
-    cell_w = img_w / S
-    cell_h = img_h / S
-
-    cell_border_w = cell_w * cell_i
-    cell_border_h = cell_h * cell_j
-
-    return x + cell_border_w, y + cell_border_h
-
 def flip_bbox_horizontal(box, image_width):
     x, y, w, h = box
     return (image_width - x - w, y, w, h)

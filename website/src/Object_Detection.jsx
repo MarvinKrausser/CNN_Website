@@ -1,8 +1,12 @@
 import styles from './Object_Detection.module.css';
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 
 function Object_Detection() {
     const videoRef = useRef(null);
+    const canvasRef = useRef(null);
+    const [error, setError] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [bboxes, setBboxes] = useState(null)
 
     useEffect(() => {
         async function startWebcam() {
@@ -44,20 +48,62 @@ function Object_Detection() {
 
         ctx.drawImage(video, 0, 0, width, height);
 
-        const dataUrl = canvas.toDataURL("image/png");
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 4;
 
-        setImage(dataUrl);
+        if (bboxes) {
+            bboxes.forEach(element => {
+                ctx.strokeRect(element[0], element[0], element[0], element[0]);
+            });
+        }
+
+        canvas.toBlob(async (blob) => {
+            if (!blob) return;
+
+            const formData = new FormData();
+            formData.append("file", blob, "frame.jpg");
+
+            setLoading(true)
+
+            try {
+                const response = await fetch("https://api.marvinkrausser.com/predict_face", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    setError(true);
+                    return;
+                }
+                else {
+                    setError(false);
+                }
+
+                const result = await response.json();
+
+                setBboxes(result["bboxes"])
+
+
+            } catch (e) {
+                setError(true);
+            }
+            finally {
+                setLoading(false);
+            }
+        }, "image/jpeg", 0.9);
     };
 
+
+    setInterval(captureImage, 100);
 
     return (
         <div className='site-box'>
             <h1 className='site-headline'>Face Detection</h1>
             <div id={styles.container}>
-                <video autoPlay={true} id={styles.videoElement} ref={videoRef}>
-
-                </video>
+                <video autoPlay={true} ref={videoRef} style={{ display: "none" }}></video>
+                <canvas ref={canvasRef} width={640} height={480} />
             </div>
+            <button onClick={captureImage}>Click</button>
         </div>
     )
 }
