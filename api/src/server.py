@@ -107,6 +107,10 @@ async def predict_face(websocket: WebSocket):
         np_arr = np.frombuffer(jpg_bytes, np.uint8)
         frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        image = Image.fromarray(frame)
+
         H, W, _ = frame.shape
         scale_w = W / IMAGE_SIZE_YOLO
         scale_h = H / IMAGE_SIZE_YOLO

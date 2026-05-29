@@ -60,30 +60,10 @@ function Object_Detection() {
         canvas.toBlob(async (blob) => {
             if (!blob) return;
 
-            const formData = new FormData();
-            formData.append("file", blob, "frame.jpg");
-
             setLoading(true)
 
             try {
-                const response = await fetch("https://api.marvinkrausser.com/predict_face", {
-                    method: "POST",
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    setError(true);
-                    return;
-                }
-                else {
-                    setError(false);
-                }
-
-                const result = await response.json();
-
-                setBboxes(result["bboxes"])
-
-
+                socket.send(file);
             } catch (e) {
                 setError(true);
             }
@@ -94,30 +74,33 @@ function Object_Detection() {
     };
 
     useEffect(() => {
-    const socket = new WebSocket("wss://api.marvinkrausser.com/predict_face");
+        const socket = new WebSocket("wss://api.marvinkrausser.com/predict_face");
 
-    socket.onopen = () => {
-      console.log("Connected");
-      socket.send("Hello server!");
-    };
+        socket.onopen = async () => {
+            console.log("Connected");
+            const response = await fetch("/cherry_bird.jpeg");
+            const blob = await response.blob();
 
-    socket.onmessage = (event) => {
-      setMessages((prev) => [...prev, event.data]);
-    };
+            socket.send(blob);
+        };
 
-    socket.onerror = (err) => {
-      console.error("WebSocket error:", err);
-    };
+        socket.onmessage = (event) => {
+            console.log(event.data);
+        };
 
-    socket.onclose = () => {
-      console.log("Disconnected");
-    };
+        socket.onerror = (err) => {
+            console.error("WebSocket error:", err);
+        };
 
-    // cleanup when component unmounts
-    return () => {
-      socket.close();
-    };
-  }, []);
+        socket.onclose = () => {
+            console.log("Disconnected");
+        };
+
+        // cleanup when component unmounts
+        return () => {
+            socket.close();
+        };
+    }, []);
 
     return (
         <div className='site-box'>
