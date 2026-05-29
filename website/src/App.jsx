@@ -8,6 +8,7 @@ import Menu from './Menu'
 import Homepage from './Homepage';
 import Bird_CNN from './Bird_CNN';
 import Reviews from './Reviews.jsx';
+import Object_Detection from './Object_Detection.jsx';
 
 function App() {
 
@@ -17,6 +18,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/bird_cnn" element={<Bird_CNN />} />
+        <Route path="/object_detection" element={<Object_Detection />} />
         <Route path="/reviews" element={<Reviews />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
