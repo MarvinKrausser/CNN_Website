@@ -6,7 +6,7 @@ class YoloLoss(nn.Module):
     def __init__(self):
         super(YoloLoss, self).__init__()
 
-    def forward(self, predictions, targets, lambda_coord=5, lambda_noobj=0.5):
+    def forward(self, predictions, targets, lambda_coord=1, lambda_noobj=1):
         pred_boxes = predictions[..., :4]
         pred_conf = predictions[..., 4]
         pred_classes = predictions[..., 5:]

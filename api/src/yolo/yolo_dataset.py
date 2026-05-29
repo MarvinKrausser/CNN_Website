@@ -66,9 +66,10 @@ class YoloDataset(Dataset):
                         A.HorizontalFlip(p=0.5),
                         A.RandomBrightnessContrast(p=0.2),
                         A.Affine(
-                            translate_percent=(-0.1, 0.1),
-                            scale=(1.2, 0.8),
+                            translate_percent=(-0.4, 0.4),
+                            scale=(0.5, 1.5),
                             rotate=0,
+                            border_mode=cv2.BORDER_REPLICATE,
                             p=0.5
                         ),
                         A.Resize(img_size, img_size)
@@ -76,7 +77,7 @@ class YoloDataset(Dataset):
                     bbox_params=A.BboxParams(
                         format="coco",
                         label_fields=["labels"],
-                        min_visibility=0.3
+                        min_visibility=0.5
                 )
             )
         else:
@@ -102,16 +103,17 @@ class YoloDataset(Dataset):
         image =  cv2.imread(image_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        # Load annotations
         annotation_ids = self.coco.getAnnIds(imgIds=image_id)
         annotations = self.coco.loadAnns(annotation_ids)
 
         boxes = []
         labels = []
 
+        annotations = sorted(annotations, key=lambda x: x['bbox'][2] * x['bbox'][3], reverse=True)
+
         for obj in annotations:
             xmin, ymin, width, height = obj['bbox']
-            xmin, ymin, width, height = float(xmin), float(ymin), float(width), float(height)
+            xmin, ymin, width, height = int(float(xmin)), int(float(ymin)), int(float(width)), int(float(height))
 
             boxes.append([xmin, ymin, width, height])
             labels.append(obj['category_id'] - 1)
@@ -125,6 +127,9 @@ class YoloDataset(Dataset):
         image = augmented["image"]
         boxes = augmented["bboxes"]
         labels = augmented["labels"]
+
+        if len(boxes) == 0:
+            return self.__getitem__((idx + 1) % len(self.image_ids))
 
         ground_truth = list(zip(boxes, labels))
         #[S, S, (x+y+w+h+c+C)]

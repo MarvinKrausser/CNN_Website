@@ -9,11 +9,7 @@ from util import TransformedSubset, test_workers_speed, visualizeImage
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets
 import torch
-import torch.nn as nn
-from torchvision.io import read_image
-from torch.utils.data import WeightedRandomSampler
 from torchvision.utils import draw_bounding_boxes
-import time
 import torch.nn.functional as F
 
 def xy_center_to_edges(xcenter, ycenter, width, height):
@@ -36,17 +32,14 @@ def view_data(dataset):
 
 def sample_data(dataloader, model, device, SAVE_PATH):
     for images, labels in iter(dataloader):
-        start = time.perf_counter()
         predictions = sample(model, images, device, SAVE_PATH)
-        end = time.perf_counter()
-        print(f"Elapsed: {end - start:.6f} seconds") 
         for batch in range(predictions.shape[0]):
             image = images[batch]
             prediction = predictions[batch]           
             visualize_boxes(prediction, image)
 
-def visualize_boxes(label, image):
-    boxes_to_draw, grids_to_draw_obj, grids_to_draw_noobj = convert_prediction(label, image)
+def visualize_boxes(label, image, threshold=0.95):
+    boxes_to_draw, grids_to_draw_obj, grids_to_draw_noobj = convert_prediction(label, image, threshold)
     if len(boxes_to_draw) == 0:
         print("no labels")
         return
@@ -87,14 +80,14 @@ def convert_prediction(label, image, threshold=0.9):
             boxes_to_draw.append(xy_center_to_edges(boxx, boxy, boxw, boxh)) #xmin, ymin, xmax, ymax
     return boxes_to_draw, grids_to_draw_obj, grids_to_draw_noobj
 
-def use_webcam():
+def use_webcam(grid, img_size):
     # 0 = default webcam
     cap = cv2.VideoCapture(0)
 
     if not cap.isOpened():
         raise Exception("Could not open webcam")
 
-    model = Yolo_model(c_in=3, boxes=1, grid=5, labels=1)
+    model = Yolo_model(c_in=3, boxes=1, grid=grid, labels=1)
     state_dict = torch.load(os.path.join("saved_models", "face_detection_yolo", "face_detection_yolo"), weights_only=False)
     model.load_state_dict(state_dict)
     model.eval()
@@ -109,17 +102,17 @@ def use_webcam():
 
         image = torch.from_numpy(rgb).permute(2, 0, 1).float()
         C, H, W = image.shape
-        scale_w = W / 64
-        scale_h = H / 64
+        scale_w = W / img_size
+        scale_h = H / img_size
 
         image = image / 255.0
         
         image = image.unsqueeze(0)
-        image = F.interpolate(image, size=(64, 64), mode="bilinear", align_corners=False) #different modes?
+        image = F.interpolate(image, size=(img_size, img_size), mode="bilinear", align_corners=True) #different modes?
 
         prediction = model(image)
 
-        bboxes, grid_ob, grid_noob = convert_prediction(prediction.squeeze(0), image.squeeze(0), threshold=0.995)
+        bboxes, grid_ob, grid_noob = convert_prediction(prediction.squeeze(0), image.squeeze(0), threshold=0.9)
 
         for bbox in grid_noob:
             xmin = int(bbox[0] * scale_w)
@@ -153,8 +146,8 @@ def use_webcam():
 def train_yolo():
     SAVE_PATH = "./saved_models"
     IMAGE_SIZE = 64
-    GRID = 3
-    BATCH_SIZE = 32
+    GRID = 6
+    BATCH_SIZE = 64
 
     dataset = YoloDataset(
         image_dir="data/faces_2/train", 
@@ -168,12 +161,12 @@ def train_yolo():
         image_dir="data/faces_2/test", 
         annotation_path="data/faces_2/test/_annotations.coco.json",
         img_size=IMAGE_SIZE,
-        transform=False,
+        transform=True,
         grid=GRID
     )
 
 
-    train_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
+    train_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
     val_loader = DataLoader(dataset_valid, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
     device = torch.device("cpu") if not torch.cuda.is_available() else torch.device("cuda:0")
@@ -189,15 +182,16 @@ def train_yolo():
     #exit()
 
 
-    sample_data(dataloader=val_loader, model=model, device=device, SAVE_PATH=SAVE_PATH)
-    exit()
+    #sample_data(dataloader=val_loader, model=model, device=device, SAVE_PATH=SAVE_PATH)
+    #exit()
 
 
     #test_workers_speed(dataset, model)
     #exit()
 
-    #use_webcam()
-    #exit()
+
+    use_webcam(GRID, IMAGE_SIZE)
+    exit()
 
 
     train(model=model, loss_module=loss_module, train_loader=train_loader, val_loader=val_loader, 

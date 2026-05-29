@@ -64,7 +64,7 @@ def iou(boxA, boxB):
 def test_workers_speed(dataset, model):
     device = next(model.parameters()).device
     for num_workers in range(0, mp.cpu_count(), 2):  
-        train_loader = DataLoader(dataset,shuffle=True,num_workers=num_workers,batch_size=16,pin_memory=True)
+        train_loader = DataLoader(dataset,shuffle=True,num_workers=num_workers,batch_size=64,pin_memory=True)
         start = time.time()
         for _ in range(2):
             for images, _  in tqdm(train_loader, leave=False):
