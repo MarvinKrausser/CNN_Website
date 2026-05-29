@@ -19,7 +19,7 @@ import sys
 sys.path.insert(1, './src/yolo')
 from yolo_model_production import convert_prediction, Yolo_model
 
-sys.path.insert(1, './src/bird_cnn')
+sys.path.insert(2, './src/bird_cnn')
 from bird_cnn import Bird_CNN
 
 BUILD_PATH = "./build_models"
