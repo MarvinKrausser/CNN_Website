@@ -115,8 +115,6 @@ async def predict_face(websocket: WebSocket):
         scale_w = W / IMAGE_SIZE_YOLO
         scale_h = H / IMAGE_SIZE_YOLO
 
-        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
         image = transform_face(image).unsqueeze(0).to(device)
         with torch.no_grad():
             pred = modeL_face(image)
