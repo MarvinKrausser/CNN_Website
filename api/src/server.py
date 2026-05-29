@@ -12,11 +12,15 @@ from PIL import Image
 import io
 import torch.nn.functional as F
 
-from app.src.yolo.train_yolo_faces import convert_prediction
-from app.src.yolo.yolo_model import Yolo_model
-from app.src.bird_cnn.bird_cnn import Bird_CNN
-
 import threading
+
+import sys
+sys.path.insert(1, './src/yolo')
+from train_yolo_faces import convert_prediction
+from yolo_model import Yolo_model
+
+sys.path.insert(1, './src/bird_cnn')
+from bird_cnn import Bird_CNN
 
 BUILD_PATH = "./build_models"
 IMAGE_SIZE_CNN = 64
@@ -97,7 +101,7 @@ async def predict_face(file: UploadFile = File(...)):
         image_bytes = await file.read()
 
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        C, H, W = image.shape
+        H, W = image.size
         scale_w = W / IMAGE_SIZE_YOLO
         scale_h = H / IMAGE_SIZE_YOLO
         image = transform_face(image).unsqueeze(0).to(device)
