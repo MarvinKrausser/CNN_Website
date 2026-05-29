@@ -1,6 +1,7 @@
 from enum import Enum
 import os
 import sqlite3
+import time
 
 import cv2
 from dotenv import load_dotenv
@@ -101,9 +102,16 @@ async def predict(file: UploadFile = File(...)):
 async def predict_face(websocket: WebSocket):
     await websocket.accept()
 
+    last = time.time()
+
     try:
         while True:
             jpg_bytes = await websocket.receive_bytes()
+
+            if time.time() - last < 1:
+                continue
+
+            last = time.time()
 
             np_arr = np.frombuffer(jpg_bytes, np.uint8)
             frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
