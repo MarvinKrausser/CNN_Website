@@ -112,36 +112,37 @@ async def predict_face(websocket: WebSocket):
                 continue
 
             last = time.time()
+            with sem_ai:
 
-            np_arr = np.frombuffer(jpg_bytes, np.uint8)
-            frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+                np_arr = np.frombuffer(jpg_bytes, np.uint8)
+                frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            image = Image.fromarray(frame)
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                image = Image.fromarray(frame)
 
-            H, W, _ = frame.shape
-            scale_w = W / IMAGE_SIZE_YOLO
-            scale_h = H / IMAGE_SIZE_YOLO
+                H, W, _ = frame.shape
+                scale_w = W / IMAGE_SIZE_YOLO
+                scale_h = H / IMAGE_SIZE_YOLO
 
-            image = transform_face(image).unsqueeze(0).to(device)
+                image = transform_face(image).unsqueeze(0).to(device)
 
-            with torch.no_grad():
-                pred = modeL_face(image)
-                bboxes, _, _ = convert_prediction(
-                    pred.squeeze(0),
-                    image.squeeze(0),
-                    threshold=0.9
-                )
+                with torch.no_grad():
+                    pred = modeL_face(image)
+                    bboxes, _, _ = convert_prediction(
+                        pred.squeeze(0),
+                        image.squeeze(0),
+                        threshold=0.9
+                    )
 
-            boxes_to_send = []
-            for bbox in bboxes:
-                xmin = int(bbox[0] * scale_w)
-                ymin = int(bbox[1] * scale_h)
-                xmax = int(bbox[2] * scale_w)
-                ymax = int(bbox[3] * scale_h)
-                boxes_to_send.append([xmin, ymin, xmax, ymax])
+                boxes_to_send = []
+                for bbox in bboxes:
+                    xmin = int(bbox[0] * scale_w)
+                    ymin = int(bbox[1] * scale_h)
+                    xmax = int(bbox[2] * scale_w)
+                    ymax = int(bbox[3] * scale_h)
+                    boxes_to_send.append([xmin, ymin, xmax, ymax])
 
-            await websocket.send_json({"bboxes": boxes_to_send})
+                await websocket.send_json({"bboxes": boxes_to_send})
 
     except WebSocketDisconnect:
         print("Client disconnected")
