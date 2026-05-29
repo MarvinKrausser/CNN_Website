@@ -85,6 +85,7 @@ function Object_Detection() {
         };
 
         socket.onmessage = (event) => {
+            console.log("message")
             console.log(event.data);
         };
 

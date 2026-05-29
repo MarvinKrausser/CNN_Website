@@ -8,7 +8,7 @@ import numpy as np
 from pydantic import BaseModel
 import torch
 from torchvision import transforms
-from fastapi import Depends, FastAPI, File, HTTPException, Header, UploadFile, WebSocket
+from fastapi import Depends, FastAPI, File, HTTPException, Header, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
@@ -101,24 +101,29 @@ async def predict(file: UploadFile = File(...)):
 async def predict_face(websocket: WebSocket):
     await websocket.accept()
 
-    while True:
-        jpg_bytes = await websocket.receive_bytes()
+    try:
+        while True:
+            jpg_bytes = await websocket.receive_bytes()
 
-        np_arr = np.frombuffer(jpg_bytes, np.uint8)
-        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            np_arr = np.frombuffer(jpg_bytes, np.uint8)
+            frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            image = Image.fromarray(frame)
 
-        image = Image.fromarray(frame)
+            H, W, _ = frame.shape
+            scale_w = W / IMAGE_SIZE_YOLO
+            scale_h = H / IMAGE_SIZE_YOLO
 
-        H, W, _ = frame.shape
-        scale_w = W / IMAGE_SIZE_YOLO
-        scale_h = H / IMAGE_SIZE_YOLO
+            image = transform_face(image).unsqueeze(0).to(device)
 
-        image = transform_face(image).unsqueeze(0).to(device)
-        with torch.no_grad():
-            pred = modeL_face(image)
-            bboxes, _, _ = convert_prediction(pred.squeeze(0), image.squeeze(0), threshold=0.9)
+            with torch.no_grad():
+                pred = modeL_face(image)
+                bboxes, _, _ = convert_prediction(
+                    pred.squeeze(0),
+                    image.squeeze(0),
+                    threshold=0.9
+                )
 
             boxes_to_send = []
             for bbox in bboxes:
@@ -128,9 +133,10 @@ async def predict_face(websocket: WebSocket):
                 ymax = int(bbox[3] * scale_h)
                 boxes_to_send.append([xmin, ymin, xmax, ymax])
 
-        await websocket.send_json({
-            "bboxes": boxes_to_send
-        })
+            await websocket.send_json({"bboxes": boxes_to_send})
+
+    except WebSocketDisconnect:
+        print("Client disconnected")
 
 
 load_dotenv("./database/.env")
