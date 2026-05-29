@@ -15,9 +15,9 @@ import torch.nn.functional as F
 import threading
 
 import sys
+
 sys.path.insert(1, './src/yolo')
-from train_yolo_faces import convert_prediction
-from yolo_model import Yolo_model
+from yolo_model_production import convert_prediction, Yolo_model
 
 sys.path.insert(1, './src/bird_cnn')
 from bird_cnn import Bird_CNN

@@ -11,4 +11,3 @@ pycocotools==2.0.11
 pydantic==2.13.3
 pydantic_core==2.46.3
 python-dotenv==1.2.2
-albumentations==2.0.8
