@@ -111,7 +111,7 @@ async def predict_face(websocket: WebSocket):
             #if time.time() - last < 1:
                 #continue
 
-            last = time.time()
+            #last = time.time()
             with sem_ai:
 
                 np_arr = np.frombuffer(jpg_bytes, np.uint8)

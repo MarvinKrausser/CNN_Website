@@ -1,8 +1,8 @@
 #container {
 	margin: 0px;
-	width: 500px;
-	height: 500px;
-	border: 10px #333 solid;
+	width: 80vw;
+	height: 70vh;
+	background-color: black;
 	align-self: center;
 	position: relative;
 }

@@ -8,13 +8,8 @@ function Object_Detection() {
     const ctxRefBBox = useRef(null);
     const ctxRefSending = useRef(null);
     const [error, setError] = useState(false);
-    const [loading, setLoading] = useState(false);
     const bboxes = useRef(null)
     const socketRef = useRef(null); 
-    const captureIntervalRef = useRef(null);
-    const drawIntervalRef = useRef(null);
-    const drawingRef = useRef(null);
-    const sendingRef = useRef(null);
     const [running, setRunning] = useState(false);
 
     useEffect(() => {
@@ -68,7 +63,11 @@ function Object_Detection() {
 
         if (bboxes.current) {
             bboxes.current.forEach(edge => {
-                ctx.strokeRect(edge[0], edge[1], edge[2] - edge[0], edge[3] - edge[1]);
+                const x1 = Math.max(edge[0], 0);
+                const y1 = Math.max(edge[1], 0);
+                const x2 = Math.min(edge[2], canvas.width);
+                const y2 = Math.min(edge[3], canvas.height);
+                ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
             });
         }
     };
@@ -77,28 +76,20 @@ function Object_Detection() {
         const video = videoRef.current;
         const canvas = canvasRefSending.current;
 
-        const canvasW = canvas.width;
-        const canvasH = canvas.height;
-
         const ctx = ctxRefSending.current;
         if (!ctx) return;
 
-        ctx.drawImage(video, 0, 0, canvasW, canvasH);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         canvas.toBlob(async (blob) => {
             if (!blob) return;
-
-            setLoading(true)
 
             try {
                 socketRef.current?.send(blob)
             } catch (e) {
                 setError(true);
             }
-            finally {
-                setLoading(false);
-            }
-        }, "image/jpeg", 0.9);
+        }, "image/jpeg", 1);
     };
 
     const printDefault = () => {
@@ -125,16 +116,6 @@ function Object_Detection() {
                 socketRef.current = null;
             }
 
-            if (drawingRef.current) {
-                clearInterval(drawingRef.current);
-                drawingRef.current = null;
-            }
-
-            if (sendingRef.current) {
-                clearInterval(sendingRef.current);
-                sendingRef.current = null;
-            }
-
             bboxes.current = null;
 
             printDefault();
@@ -142,16 +123,25 @@ function Object_Detection() {
             return;
         }
 
+        const video = videoRef.current;
+        const canvas = canvasRefBBox.current;
+
+        const ctx = ctxRefBBox.current;
+        if (!ctx) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
         const socket = new WebSocket("wss://api.marvinkrausser.com/predict_face");
         socketRef.current = socket;
 
         socket.onopen = () => {
             console.log("Connected");
-            sendingRef.current = setInterval(sendImage, 100);
+            sendImage();
         }
         socket.onmessage = (event) => {
             drawBBox();
             bboxes.current = JSON.parse(event.data).bboxes;
+            sendImage();
         }
         socket.onerror = console.error;
         socket.onclose = () => console.log("Disconnected");
@@ -173,7 +163,7 @@ function Object_Detection() {
                     htmlFor="button-send"
                     className="custom-button"
                 >
-                    Ask Expert
+                    {running? "End Detection" : "Start Detection"}
                 </label>
             </div>
             <div id={styles.container}>

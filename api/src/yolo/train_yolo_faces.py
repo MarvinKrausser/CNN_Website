@@ -75,7 +75,7 @@ def use_webcam(grid, img_size):
 
         prediction = model(image)
 
-        bboxes, grid_ob, grid_noob = convert_prediction(prediction.squeeze(0), image.squeeze(0), threshold=0.9)
+        bboxes, grid_ob, grid_noob = convert_prediction(prediction.squeeze(0), image.squeeze(0), threshold=0.95)
 
         for bbox in grid_noob:
             xmin = int(bbox[0] * scale_w)
