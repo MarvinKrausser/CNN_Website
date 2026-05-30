@@ -1,7 +1,7 @@
 #video-container {
 	margin: 0px;
-	width: min(70vh, 70vw);
-	height: min(70vh, 70vw);
+	width: min(70vh, 90vw);
+	height: min(70vh, 90vw);
 	background-color: black;
 	align-self: center;
 	position: relative;
