@@ -107,6 +107,7 @@ async def predict_face(websocket: WebSocket):
     try:
         while True:
             jpg_bytes = await websocket.receive_bytes()
+            print("received message")
 
             if time.time() - last < 1:
                 continue
@@ -142,6 +143,7 @@ async def predict_face(websocket: WebSocket):
                     ymax = int(bbox[3] * scale_h)
                     boxes_to_send.append([xmin, ymin, xmax, ymax])
 
+                print("sending message")
                 await websocket.send_json({"bboxes": boxes_to_send})
 
     except WebSocketDisconnect:

@@ -11,6 +11,8 @@ function Object_Detection() {
     const ctxRef = useRef(null);
     const captureIntervalRef = useRef(null);
     const drawIntervalRef = useRef(null);
+    const [drawing, setDrawing] = useState(null);
+    const [sending, setSending] = useState(null);
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -88,39 +90,30 @@ function Object_Detection() {
         }, "image/jpeg", 0.9);
     };
 
-    useEffect(() => {
+    const startRecording = () => {
         const socket = new WebSocket("wss://api.marvinkrausser.com/predict_face");
         socketRef.current = socket;
 
-        socket.onopen = () => console.log("Connected");
+        socket.onopen = () => {
+            console.log("Connected");
+            setDrawing(setInterval(drawImage, 1000 / 60));
+            setSending(setInterval(sendImage, 100));
+        }
         socket.onmessage = (event) => {
             setBboxes(JSON.parse(event.data).bboxes);
         }
         socket.onerror = console.error;
         socket.onclose = () => console.log("Disconnected");
-        return () => {
-            socket.close(); // important cleanup
-        };
-    }, []);
-
-    useEffect(() => {
-        const captureInterval = setInterval(sendImage, 100);
-        const drawInterval = setInterval(drawImage, 1000 / 60);
-
-        return () => {
-            clearInterval(captureInterval);
-            clearInterval(drawInterval);
-        };
-    }, [bboxes]);
+    }
 
     return (
         <div className='site-box'>
             <h1 className='site-headline'>Face Detection</h1>
-            <p>Work in Progress</p>
             <div id={styles.container}>
                 <video autoPlay={true} ref={videoRef} style={{ display: "none" }}></video>
                 <canvas ref={canvasRef} width={1000} height={800} />
             </div>
+            <button onClick={startRecording}>Click</button>
         </div>
     )
 }
