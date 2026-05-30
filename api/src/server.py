@@ -102,15 +102,14 @@ async def predict(file: UploadFile = File(...)):
 async def predict_face(websocket: WebSocket):
     await websocket.accept()
 
-    last = time.time()
+    #last = time.time()
 
     try:
         while True:
             jpg_bytes = await websocket.receive_bytes()
-            print("received message")
 
-            if time.time() - last < 1:
-                continue
+            #if time.time() - last < 1:
+                #continue
 
             last = time.time()
             with sem_ai:
@@ -143,7 +142,6 @@ async def predict_face(websocket: WebSocket):
                     ymax = int(bbox[3] * scale_h)
                     boxes_to_send.append([xmin, ymin, xmax, ymax])
 
-                print("sending message")
                 await websocket.send_json({"bboxes": boxes_to_send})
 
     except WebSocketDisconnect:

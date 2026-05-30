@@ -1,6 +1,14 @@
 #container {
-	margin: 0px auto;
-	width: fit-content;
-	height: fit-content;
+	margin: 0px;
+	width: 500px;
+	height: 500px;
 	border: 10px #333 solid;
+	align-self: center;
+	position: relative;
+}
+
+.button-div{
+	width: 200px;
+	align-self: center;
+	margin: 50px;
 }
