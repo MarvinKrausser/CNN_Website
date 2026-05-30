@@ -97,7 +97,7 @@ function Object_Detection() {
         if (!ctx) return;
 
         const img = new Image();
-        img.src = "/cherry_bird.jpeg";
+        img.src = "/yolo.jfif";
 
         const canvas = canvasRefBBox.current;
 
@@ -139,8 +139,8 @@ function Object_Detection() {
             sendImage();
         }
         socket.onmessage = (event) => {
-            drawBBox();
             bboxes.current = JSON.parse(event.data).bboxes;
+            drawBBox();
             sendImage();
         }
         socket.onerror = console.error;
@@ -166,10 +166,16 @@ function Object_Detection() {
                     {running? "End Detection" : "Start Detection"}
                 </label>
             </div>
-            <div id={styles.container}>
+            <div id={styles["video-container"]}>
                 <video autoPlay={true} ref={videoRef} style={{ width: "100%", height: "100%", position: "absolute", zIndex: "3" }}></video>
                 <canvas ref={canvasRefBBox} style={{width: "100%", height: "100%", position: "absolute", zIndex: "4"}} />
                 <canvas ref={canvasRefSending} style={{width: "100%", height: "100%", display: "none"}} />
+            </div>
+
+            <div id={styles["text-container"]}>
+                <p>
+                    This Project is an implementation of the YOLO (You Only Look Once) algorithm. It was implemented with Pytorch and trained on a Dataset from Roboflow.
+                </p>
             </div>
         </div>
     )

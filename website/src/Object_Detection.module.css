@@ -1,4 +1,4 @@
-#container {
+#video-container {
 	margin: 0px;
 	width: 80vw;
 	height: 70vh;
@@ -11,4 +11,12 @@
 	width: 200px;
 	align-self: center;
 	margin: 50px;
+}
+
+#text-container {
+	margin: 70px 0 0 0;
+	width: 80vw;
+	height: 70vh;
+	align-self: center;
+	position: relative;
 }
