@@ -29,7 +29,8 @@ def convert_prediction(label, image, threshold=0.9):
 
             boxx, boxy = turn_image_centered(x=boxx, y=boxy, img_w=image_size, img_h=image_size, S=grid_number, cell_i=x, cell_j=y)
 
-            boxes_to_draw.append(xy_center_to_edges(boxx, boxy, boxw, boxh)) #xmin, ymin, xmax, ymax
+            boxes_to_draw.append([label[x, y, 4]] + xy_center_to_edges(boxx, boxy, boxw, boxh)) #xmin, ymin, xmax, ymax
+    boxes_to_draw = nms(boxes_to_draw)
     return boxes_to_draw, grids_to_draw_obj, grids_to_draw_noobj
 
 def turn_image_centered(x, y, img_w, img_h, S, cell_i, cell_j):
@@ -49,6 +50,37 @@ def xy_center_to_edges(xcenter, ycenter, width, height):
     y = ycenter - (height / 2)
 
     return [x, y, x + width, y + height]
+
+def iou(boxA, boxB):
+    xA = max(boxA[0], boxB[0])
+    yA = max(boxA[1], boxB[1])
+    xB = min(boxA[2], boxB[2])
+    yB = min(boxA[3], boxB[3])
+
+    inter_area = max(0, xB - xA) * max(0, yB - yA)
+
+    boxA_area = (boxA[2]-boxA[0]) * (boxA[3]-boxA[1])
+    boxB_area = (boxB[2]-boxB[0]) * (boxB[3]-boxB[1])
+
+    union = boxA_area + boxB_area - inter_area
+
+    return inter_area / union if union > 0 else 0
+
+def nms(bboxes, iou_threshold=0.1):
+    bboxes = sorted(bboxes, key=lambda x: x[0], reverse=True)
+
+    keep = []
+
+    while bboxes:
+        best = bboxes.pop(0)
+        keep.append(best[1:5])
+
+        bboxes = [
+            box for box in bboxes
+            if iou(best[1:5], box[1:5]) < iou_threshold
+        ]
+
+    return keep
 
 class Yolo_Conv_Block(nn.Module):
     def __init__(self, c_in, c_hidden, c_out, kernel_size):
