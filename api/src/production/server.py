@@ -17,13 +17,8 @@ import torch.nn.functional as F
 
 import threading
 
-import sys
-
-sys.path.insert(1, './src/yolo')
 from yolo_model_production import convert_prediction, Yolo_model
-
-sys.path.insert(2, './src/bird_cnn')
-from bird_cnn import Bird_CNN
+from bird_cnn_production import Bird_CNN
 
 BUILD_PATH = "./build_models"
 IMAGE_SIZE_CNN = 64

@@ -12,8 +12,7 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src ./src
-COPY start_server.sh ./start_server.sh
+COPY src/production/. .
 COPY build_models ./build_models
 
 RUN chmod +x start_server.sh
