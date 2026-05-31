@@ -1,7 +1,6 @@
 import sys
 
 sys.path.insert(1, './src/yolo')
-from yolo_model_production import convert_prediction, Yolo_model
 from train_yolo_faces import train_yolo
 
 sys.path.insert(2, './src/bird_cnn')

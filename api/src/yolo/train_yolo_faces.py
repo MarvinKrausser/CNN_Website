@@ -12,7 +12,7 @@ import torch
 from torchvision.utils import draw_bounding_boxes
 import torch.nn.functional as F
 
-from yolo_model_production import convert_prediction
+from production.yolo_model_production import convert_prediction
 
 def view_data(dataset):
     dataloader = DataLoader(dataset=dataset, batch_size=1, shuffle=False)
