@@ -12,6 +12,7 @@ function Object_Detection() {
     const socketRef = useRef(null);
     const [running, setRunning] = useState(false);
     const streamRef = useRef(null);
+    const sendImageIntervall = useRef(null);
 
     useEffect(() => {
         if (canvasRefBBox.current) {
@@ -125,14 +126,19 @@ function Object_Detection() {
             if (!canvas) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            sendImage();
+            sendImageIntervall.current = setInterval(sendImage, 1000 / 2);
         }
         socket.onmessage = (event) => {
             bboxes.current = JSON.parse(event.data).bboxes;
             drawBBox();
-            sendImage();
         }
-        socket.onerror = console.error;
+        socket.onerror = () => {
+            console.log("Websocket Error");
+            printDefault();
+            setRunning(false);
+
+            endWebcam();
+        }
         socket.onclose = () => {
             console.log("Disconnected");
             printDefault();
@@ -164,6 +170,10 @@ function Object_Detection() {
 
         if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => track.stop());
+        }
+
+        if(sendImageIntervall.current){
+            clearInterval(sendImageIntervall.current);
         }
     }
 

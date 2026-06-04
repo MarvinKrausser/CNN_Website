@@ -97,16 +97,16 @@ async def predict(file: UploadFile = File(...)):
 async def predict_face(websocket: WebSocket):
     await websocket.accept()
 
-    #last = time.time()
+    last = time.time()
 
     try:
         while True:
             jpg_bytes = await websocket.receive_bytes()
 
-            #if time.time() - last < 1:
-                #continue
+            if time.time() - last < 1 / 2:
+                continue
 
-            #last = time.time()
+            last = time.time()
             with sem_ai:
 
                 np_arr = np.frombuffer(jpg_bytes, np.uint8)
