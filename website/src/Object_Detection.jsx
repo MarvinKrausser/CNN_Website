@@ -72,13 +72,14 @@ function Object_Detection() {
     };
 
     const printDefault = () => {
+        const canvas = canvasRefBBox.current;
         const ctx = ctxRefBBox.current;
         if (!ctx) return;
+        if (!canvas) return;
 
         const img = new Image();
         img.src = "/yolo.jfif";
 
-        const canvas = canvasRefBBox.current;
 
         const canvasW = canvas.width;
         const canvasH = canvas.height;
@@ -112,18 +113,18 @@ function Object_Detection() {
             console.error("Error accessing webcam:", err);
         }
 
-        const canvas = canvasRefBBox.current;
-
-        const ctx = ctxRefBBox.current;
-        if (!ctx) return;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
         const socket = new WebSocket("wss://api.marvinkrausser.com/predict_face");
         socketRef.current = socket;
 
         socket.onopen = () => {
             console.log("Connected");
+            const canvas = canvasRefBBox.current;
+
+            const ctx = ctxRefBBox.current;
+            if (!ctx) return;
+            if (!canvas) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             sendImage();
         }
         socket.onmessage = (event) => {
@@ -132,7 +133,13 @@ function Object_Detection() {
             sendImage();
         }
         socket.onerror = console.error;
-        socket.onclose = () => console.log("Disconnected");
+        socket.onclose = () => {
+            console.log("Disconnected");
+            printDefault();
+            setRunning(false);
+
+            endWebcam();
+        }
 
         setRunning(true);
     }
