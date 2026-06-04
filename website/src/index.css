@@ -35,7 +35,7 @@ h4 {
 
 .site-headline {
     margin: 50px min(100px, 10vw) 50px min(100px, 10vw);
-    color: rgb(47, 168, 208);
+    color: var(--surface);
     font-weight: bold;
     font-size: clamp(1rem, min(8vw, 8vh), 4rem);
     position: relative;
@@ -50,7 +50,7 @@ h4 {
     height: 4px;
     width: 100%;
     border-radius: 20px;
-    background: rgb(47, 168, 208);
+    background: var(--surface);
 }
 
 .site-box {

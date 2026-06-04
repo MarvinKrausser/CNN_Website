@@ -13,10 +13,24 @@
 	margin: 50px;
 }
 
-#text-container {
+#text-container-explanation {
 	margin: 70px 0 0 0;
 	width: 80vw;
-	height: 70vh;
+	height: 300px;
 	align-self: center;
 	position: relative;
+}
+
+#text-container-introduction {
+	margin: 50px 0 20px 0;
+	width: 70vw;
+	height: fit-content;
+	align-self: center;
+	position: relative;
+	left: -10vw;
+}
+
+#text-container-introduction p {
+	margin: 40px 0 40px 0;
+	font-size: 1.1rem;
 }
