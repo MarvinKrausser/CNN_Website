@@ -27,6 +27,7 @@ function Object_Detection() {
     const drawBBox = () => {
         const video = videoRef.current;
         const canvas = canvasRefBBox.current;
+        if (!canvas) return;
 
         const ctx = ctxRefBBox.current;
         if (!ctx) return;
