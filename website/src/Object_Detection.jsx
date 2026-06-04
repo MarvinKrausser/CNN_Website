@@ -8,7 +8,6 @@ function Object_Detection() {
     const ctxRefBBox = useRef(null);
     const ctxRefSending = useRef(null);
     const [error, setError] = useState(false);
-    const bboxes = useRef(null)
     const socketRef = useRef(null);
     const [running, setRunning] = useState(false);
     const streamRef = useRef(null);
@@ -25,22 +24,20 @@ function Object_Detection() {
         }
     }, []);
 
-    const drawBBox = () => {
-        const video = videoRef.current;
+    const drawBBox = (bboxes) => {
         const canvas = canvasRefBBox.current;
         if (!canvas) return;
 
         const ctx = ctxRefBBox.current;
         if (!ctx) return;
-        if (!canvas) return;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         ctx.strokeStyle = "red";
         ctx.lineWidth = 1;
 
-        if (bboxes.current) {
-            bboxes.current.forEach(edge => {
+        if (bboxes) {
+            bboxes.forEach(edge => {
                 const x1 = Math.max(edge[0], 0);
                 const y1 = Math.max(edge[1], 0);
                 const x2 = Math.min(edge[2], canvas.width);
@@ -129,8 +126,7 @@ function Object_Detection() {
             sendImageIntervall.current = setInterval(sendImage, 1000 / 2);
         }
         socket.onmessage = (event) => {
-            bboxes.current = JSON.parse(event.data).bboxes;
-            drawBBox();
+            drawBBox(JSON.parse(event.data).bboxes);
         }
         socket.onerror = () => {
             console.log("Websocket Error");
@@ -161,8 +157,6 @@ function Object_Detection() {
             socketRef.current.close();
             socketRef.current = null;
         }
-
-        bboxes.current = null;
 
         if (videoRef.current) {
             videoRef.current.srcObject = null;
