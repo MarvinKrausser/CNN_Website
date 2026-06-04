@@ -103,7 +103,7 @@ async def predict_face(websocket: WebSocket):
         while True:
             jpg_bytes = await websocket.receive_bytes()
 
-            if time.time() - last < 1 / 2:
+            if time.time() - last < 1 / 2.1:
                 continue
 
             last = time.time()
