@@ -9,8 +9,9 @@ function Object_Detection() {
     const ctxRefSending = useRef(null);
     const [error, setError] = useState(false);
     const bboxes = useRef(null)
-    const socketRef = useRef(null); 
+    const socketRef = useRef(null);
     const [running, setRunning] = useState(false);
+    const streamRef = useRef(null);
 
     useEffect(() => {
         if (canvasRefBBox.current) {
@@ -23,38 +24,13 @@ function Object_Detection() {
         }
     }, []);
 
-    useEffect(() => {
-        async function startWebcam() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: true,
-                    audio: false,
-                });
-
-                if (videoRef.current) {
-                    videoRef.current.srcObject = stream;
-                }
-            } catch (err) {
-                console.error("Error accessing webcam:", err);
-            }
-        }
-
-        startWebcam();
-
-        return () => {
-            if (videoRef.current?.srcObject) {
-                const tracks = videoRef.current.srcObject.getTracks();
-                tracks.forEach((track) => track.stop());
-            }
-        };
-    }, []);
-
     const drawBBox = () => {
         const video = videoRef.current;
         const canvas = canvasRefBBox.current;
 
         const ctx = ctxRefBBox.current;
         if (!ctx) return;
+        if (!canvas) return;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -78,6 +54,8 @@ function Object_Detection() {
 
         const ctx = ctxRefSending.current;
         if (!ctx) return;
+        if (!canvas) return;
+        if (!video) return;
 
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
@@ -109,21 +87,30 @@ function Object_Detection() {
         };
     }
 
-    const startRecording = () => {
+    const startRecording = async () => {
         if (running) {
-            if (socketRef.current) {
-                socketRef.current.close();
-                socketRef.current = null;
-            }
-
-            bboxes.current = null;
-
             printDefault();
             setRunning(false);
+
+            endWebcam();
             return;
         }
 
-        const video = videoRef.current;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false,
+            });
+
+            streamRef.current = stream;
+
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+        } catch (err) {
+            console.error("Error accessing webcam:", err);
+        }
+
         const canvas = canvasRefBBox.current;
 
         const ctx = ctxRefBBox.current;
@@ -149,6 +136,29 @@ function Object_Detection() {
         setRunning(true);
     }
 
+    useEffect(() => {
+        return () => {
+            endWebcam();
+        };
+    }, []);
+
+    const endWebcam = () => {
+        if (socketRef.current) {
+            socketRef.current.close();
+            socketRef.current = null;
+        }
+
+        bboxes.current = null;
+
+        if (videoRef.current) {
+            videoRef.current.srcObject = null;
+        }
+
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+        }
+    }
+
     return (
         <div className='site-box'>
             <h1 className='site-headline'>Face Detection</h1>
@@ -163,13 +173,13 @@ function Object_Detection() {
                     htmlFor="button-send"
                     className="custom-button"
                 >
-                    {running? "End Detection" : "Start Detection"}
+                    {running ? "End Detection" : "Start Detection"}
                 </label>
             </div>
             <div id={styles["video-container"]}>
                 <video autoPlay={true} ref={videoRef} style={{ width: "100%", height: "100%", position: "absolute", zIndex: "3" }}></video>
-                <canvas ref={canvasRefBBox} style={{width: "100%", height: "100%", position: "absolute", zIndex: "4"}} />
-                <canvas ref={canvasRefSending} style={{width: "100%", height: "100%", display: "none"}} />
+                <canvas ref={canvasRefBBox} style={{ width: "100%", height: "100%", position: "absolute", zIndex: "4" }} />
+                <canvas ref={canvasRefSending} style={{ width: "100%", height: "100%", display: "none" }} />
             </div>
 
             <div id={styles["text-container"]}>
