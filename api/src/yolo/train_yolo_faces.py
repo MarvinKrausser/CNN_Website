@@ -15,7 +15,7 @@ import torch.nn.functional as F
 from production.yolo_model_production import convert_prediction
 
 def view_data(dataset):
-    dataloader = DataLoader(dataset=dataset, batch_size=1, shuffle=False)
+    dataloader = DataLoader(dataset=dataset, batch_size=1, shuffle=True)
     for images, labels in iter(dataloader):
         for batch in range(images.shape[0]):
             image = images[batch]
@@ -112,16 +112,16 @@ def train_yolo():
     BATCH_SIZE = 64
 
     dataset = YoloDataset(
-        image_dir="data/faces_2/train", 
-        annotation_path="data/faces_2/train/_annotations.coco.json",
+        image_dir="data/faces_scenery/train", 
+        annotation_path="data/faces_scenery/train/_annotations.coco.json",
         img_size=IMAGE_SIZE,
         transform=True,
         grid=GRID
     )
 
     dataset_valid = YoloDataset(
-        image_dir="data/faces_2/test", 
-        annotation_path="data/faces_2/test/_annotations.coco.json",
+        image_dir="data/faces_scenery/test", 
+        annotation_path="data/faces_scenery/test/_annotations.coco.json",
         img_size=IMAGE_SIZE,
         transform=True,
         grid=GRID
@@ -140,7 +140,7 @@ def train_yolo():
     loss_module = YoloLoss()
 
 
-    #view_data(dataset)
+    #view_data(dataset_valid)
     #exit()
 
 
@@ -152,8 +152,8 @@ def train_yolo():
     #exit()
 
 
-    use_webcam(GRID, IMAGE_SIZE)
-    exit()
+    #use_webcam(GRID, IMAGE_SIZE)
+    #exit()
 
 
     train(model=model, loss_module=loss_module, train_loader=train_loader, val_loader=val_loader, 

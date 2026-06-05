@@ -48,7 +48,7 @@ class YoloDataset(Dataset):
         self.image_ids = list(self.coco.imgs.keys())
         self.img_size = img_size
         self.grid = grid
-        self.num_classes = len(self.coco.cats)-1
+        self.num_classes = len(self.coco.cats)
         self.toTensor = transforms.ToTensor()
 
         if transform:

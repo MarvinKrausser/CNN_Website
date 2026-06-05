@@ -80,10 +80,7 @@ class Yolo_model(nn.Module):
 
     def forward(self, x):
         x = self.model(x).permute(0, 2, 3, 1)
-        center = F.sigmoid(x[..., :2])
-        size = torch.exp(x[..., 2:4])
-        conf_class = F.sigmoid(x[..., 4:])
-        return torch.cat([center, size, conf_class], dim=3)
+        return F.sigmoid(x)
     
 
 def train(model, loss_module, train_loader, val_loader, optimizer, SAVE_PATH, model_name, saving=True):
