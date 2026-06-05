@@ -34,7 +34,6 @@ def visualize_boxes(label, image, threshold=0.95):
     boxes_to_draw, grids_to_draw_obj, grids_to_draw_noobj = convert_prediction(label, image, threshold)
     if len(boxes_to_draw) == 0:
         print("no labels")
-        return
     boxes_to_draw = torch.tensor(boxes_to_draw)
     grids_to_draw_noobj = torch.tensor(grids_to_draw_noobj)
     grids_to_draw_obj = torch.tensor(grids_to_draw_obj)

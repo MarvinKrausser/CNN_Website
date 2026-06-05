@@ -119,9 +119,6 @@ class YoloDataset(Dataset):
         boxes = augmented["bboxes"]
         labels = augmented["labels"]
 
-        if len(boxes) == 0:
-            return self.__getitem__((idx + 1) % len(self.image_ids))
-
         ground_truth = list(zip(boxes, labels))
         #[S, S, (x+y+w+h+c+C)]
         targets = np.zeros((self.grid, self.grid, 5 + self.num_classes), dtype=np.float32)
