@@ -86,16 +86,9 @@ function Bird_CNN() {
         <>
             <div className='site-box'>
                 <h1 className='site-headline'>Bird Species Expert</h1>
-                <div
-                    className={styles["content-box"]}
-                    style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        justifyContent: "center"
-                    }}
-                >
+                <div className={styles["content-box"]}>
                     <div className={`${styles["explanation-box"]} ${styles.left}`}>
-                        <h2 style={{ color: "rgb(47, 168, 208)" }}>Explanation</h2>
+                        <h2 className={styles["explanation-heading"]}>Explanation</h2>
 
                         <span>
                             Select and upload an image to our bird classification model.
@@ -218,7 +211,7 @@ function Bird_CNN() {
                     </div>
 
                     <div className={`${styles["explanation-box"]} ${styles.right}`}>
-                        <h3>Model Architecture</h3>
+                        <h3 className={styles["explanation-heading"]}>Model Architecture</h3>
 
                         <div style={{ display: "inline" }}>
                             <span>

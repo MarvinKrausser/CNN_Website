@@ -174,9 +174,9 @@ function Object_Detection() {
     return (
         <div className='site-box'>
             <h1 className='site-headline'>Face Detection</h1>
-            <div id={styles["text-container-introduction"]}>
+            <div className={styles["text-container-introduction"]}>
                 <p>
-                    The model’s performance has been limited to 2 FPS due to low-end server hardware constraints.
+                    The model's performance has been limited to 2 FPS due to low-end server hardware constraints.
                 </p>
                 <p>
                     The webcam video is transmitted to a server for processing. The server does not store, train on, or use the data for any purpose other than face detection.
@@ -196,13 +196,13 @@ function Object_Detection() {
                     {running ? "End Detection" : "Start Detection"}
                 </label>
             </div>
-            <div id={styles["video-container"]}>
+            <div className={styles["video-container"]}>
                 <video autoPlay={true} ref={videoRef} style={{ width: "100%", height: "100%", position: "absolute", zIndex: "3" }}></video>
                 <canvas ref={canvasRefBBox} style={{ width: "100%", height: "100%", position: "absolute", zIndex: "4" }} />
                 <canvas ref={canvasRefSending} style={{ width: "100%", height: "100%", display: "none" }} />
             </div>
 
-            <div id={styles["text-container-explanation"]}>
+            <div className={styles["text-container-explanation"]}>
                 <p>
                     This Project is an implementation of the YOLO (You Only Look Once) algorithm. It was implemented with Pytorch and trained on a Dataset from Roboflow.
                 </p>

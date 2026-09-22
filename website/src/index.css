@@ -1,43 +1,98 @@
+:root {
+    --surface: rgb(47, 168, 208);
+    --surface-dim: rgba(47, 168, 208, 0.15);
+    --surface-line: rgba(47, 168, 208, 0.35);
+    --bg: rgb(4, 0, 10);
+    --bg-elevated: rgb(13, 10, 22);
+    --text: rgb(255, 255, 255);
+    --text-dim: rgba(255, 255, 255, 0.68);
+    --accent-2: #c59eff;
+    --radius: 16px;
+    --nav-height: 70px;
+    --page-pad: clamp(20px, 6vw, 100px);
+}
+
 html {
-    font-family: system-ui, sans-serif;
-    color: rgb(255, 255, 255);
+    font-family: system-ui, -apple-system, sans-serif;
+    color: var(--text);
     font-size: 1rem;
     line-height: 1.7;
-
+    -webkit-text-size-adjust: 100%;
 }
 
 body {
     background: var(--bg);
+    background-image:
+        radial-gradient(ellipse 900px 500px at 15% -10%, var(--surface-dim), transparent 60%),
+        radial-gradient(ellipse 700px 500px at 100% 10%, rgba(197, 158, 255, 0.08), transparent 55%);
+    background-attachment: fixed;
     margin: 0;
     padding: 0;
-    --surface: rgb(47, 168, 208);
-    --bg: rgb(4, 0, 10);
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
 button {
     font-size: 1rem;
+    font-family: inherit;
 }
 
 a {
-    color: rgb(255, 255, 255);
+    color: var(--text);
 }
 
 h1,
 h2,
 h3,
 h4 {
-    font-family: 'Times New Roman', serif;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+p {
+    color: var(--text-dim);
 }
 
 * {
     box-sizing: border-box;
 }
 
+*:focus-visible {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 3px;
+}
+
+::selection {
+    background: var(--surface);
+    color: black;
+}
+
+/* scrollbar theming */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--surface);
+}
+
 .site-headline {
-    margin: 50px min(100px, 10vw) 50px min(100px, 10vw);
+    margin: 0 0 clamp(24px, 5vw, 50px) 0;
     color: var(--surface);
     font-weight: bold;
-    font-size: clamp(1rem, min(8vw, 8vh), 4rem);
+    font-size: clamp(2.2rem, 8vw, 4rem);
     position: relative;
     width: fit-content;
 }
@@ -45,8 +100,8 @@ h4 {
 .site-headline::before {
     content: "";
     position: absolute;
-    bottom: 0;
-    right: 0;
+    bottom: -6px;
+    left: 0;
     height: 4px;
     width: 100%;
     border-radius: 20px;
@@ -54,11 +109,30 @@ h4 {
 }
 
 .site-box {
-    margin-top: 150px;
+    margin-top: calc(var(--nav-height) + clamp(30px, 8vh, 80px));
+    margin-bottom: clamp(40px, 8vh, 100px);
     width: 100%;
+    max-width: 1200px;
+    padding: 0 var(--page-pad);
     height: fit-content;
     display: flex;
     flex-direction: column;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.page-lead {
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    max-width: 70ch;
+    margin: -10px 0 40px 0;
+}
+
+.card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--surface-line);
+    border-radius: var(--radius);
+    padding: clamp(20px, 3vw, 32px);
 }
 
 .custom-button {
@@ -75,6 +149,7 @@ h4 {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
 }
 
 .custom-button:hover {
@@ -90,4 +165,5 @@ h4 {
 
 .custom-button.inactive:hover {
     border-color: var(--surface);
+    color: black;
 }

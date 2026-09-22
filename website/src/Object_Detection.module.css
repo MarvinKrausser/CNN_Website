@@ -1,36 +1,40 @@
-#video-container {
-	margin: 0px;
-	width: min(70vh, 90vw);
-	height: min(70vh, 90vw);
+.video-container {
+	margin: clamp(20px, 5vh, 50px) 0;
+	width: min(70vh, 100%);
+	max-width: 600px;
+	aspect-ratio: 1 / 1;
 	background-color: black;
+	border-radius: var(--radius);
+	overflow: hidden;
+	align-self: center;
+	position: relative;
+	border: 1px solid var(--surface-line);
+}
+
+.button-div {
+	width: fit-content;
+	align-self: center;
+	margin: clamp(24px, 6vw, 50px) 0;
+}
+
+.text-container-explanation {
+	margin: clamp(30px, 6vw, 70px) 0 0 0;
+	width: 100%;
+	max-width: 800px;
 	align-self: center;
 	position: relative;
 }
 
-.button-div{
-	width: 200px;
-	align-self: center;
-	margin: 50px;
-}
-
-#text-container-explanation {
-	margin: 70px 0 0 0;
-	width: 80vw;
-	height: 300px;
+.text-container-introduction {
+	margin: clamp(20px, 5vw, 50px) 0 0 0;
+	width: 100%;
+	max-width: 800px;
 	align-self: center;
 	position: relative;
 }
 
-#text-container-introduction {
-	margin: 50px 0 20px 0;
-	width: 70vw;
-	height: fit-content;
-	align-self: center;
-	position: relative;
-	left: -10vw;
-}
-
-#text-container-introduction p {
-	margin: 40px 0 40px 0;
+.text-container-introduction p,
+.text-container-explanation p {
+	margin: 20px 0;
 	font-size: 1.1rem;
 }
