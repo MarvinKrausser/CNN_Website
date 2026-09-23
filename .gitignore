@@ -4,3 +4,6 @@ api/testimages/
 **/__pycache__/
 
 **/*.env
+caddy/data/*
+!caddy/data/.gitkeep
+caddy/config/

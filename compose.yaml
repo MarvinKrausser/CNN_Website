@@ -9,6 +9,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./caddy/data:/data/caddy
+      - ./caddy/config:/config/caddy
     depends_on:
       - cnn_api
       - cnn_website

@@ -1,23 +1,36 @@
+{
+	email koro.no.omo@gmail.com
+}
+
+(common) {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	log
+}
+
+www.marvinkrausser.com {
+	redir https://marvinkrausser.com{uri} permanent
+}
+
 marvinkrausser.com {
-   reverse_proxy cnn_website:8080
+	import common
+	reverse_proxy cnn_website:8080
 }
 
 api.marvinkrausser.com {
-  reverse_proxy cnn_api:8000
+	import common
+	request_body {
+		max_size 10MB
+	}
+	reverse_proxy cnn_api:8000
 }
 
 portfolio.marvinkrausser.com {
-  reverse_proxy portfolio_website:8081
-}
-
-http://localhost:8080 {
-   reverse_proxy cnn_website:8080
-}
-
-http://localhost:8000 {
-  reverse_proxy cnn_api:8000
-}
-
-http://localhost:8081 {
-  reverse_proxy portfolio_website:8081
+	import common
+	reverse_proxy portfolio_website:8081
 }
