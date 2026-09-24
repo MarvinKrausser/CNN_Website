@@ -45,7 +45,8 @@ MAX_FRAME_BYTES = 1 * 1024 * 1024
 MAX_IMAGE_PIXELS = 20_000_000
 MAX_WEBSOCKETS = 3
 MAX_WEBSOCKETS_PER_IP = 1
-FACE_MIN_INTERVAL = 1 / 2.1
+FACE_MAX_FPS = float(os.getenv("FACE_MAX_FPS", "5.5"))  # per websocket connection
+FACE_MIN_INTERVAL = 1 / FACE_MAX_FPS
 DECODE_DRAFT_SIZE = (256, 256)  # JPEG decodes at reduced scale, still larger than the 64px model input
 
 torch.set_num_threads(TORCH_THREADS)

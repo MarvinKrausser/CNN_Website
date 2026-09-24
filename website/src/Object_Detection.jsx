@@ -3,6 +3,11 @@ import { useRef, useEffect, useState } from 'react'
 
 const FRAME_QUALITY = 0.7;
 
+// How many frames per second are sent to the API. The server drops frames
+// arriving faster than ~2.1/s (FACE_MAX_FPS in server.py), so values
+// above that have no effect unless the server limit is raised too.
+const FRAMES_PER_SECOND = 5;
+
 function Object_Detection() {
     const videoRef = useRef(null);
     const canvasRefBBox = useRef(null);
@@ -125,7 +130,7 @@ function Object_Detection() {
             if (!canvas) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            sendImageIntervall.current = setInterval(sendImage, 1000 / 2);
+            sendImageIntervall.current = setInterval(sendImage, 1000 / FRAMES_PER_SECOND);
         }
         socket.onmessage = (event) => {
             drawBBox(JSON.parse(event.data).bboxes);
