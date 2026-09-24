@@ -45,7 +45,7 @@ QUEUED_INFERENCES = max(0, int(os.getenv("QUEUED_INFERENCES", "1")))
 # PyTorch threads used by EACH running prediction. Total CPU use is roughly
 # PARALLEL_INFERENCES * TORCH_THREADS, so keep the product <= your CPU cores.
 TORCH_THREADS = max(1, int(os.getenv("TORCH_THREADS", "1")))
-MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+MAX_UPLOAD_BYTES = int(max(1, float(os.getenv("MAX_UPLOAD_MEGABYTES", "15"))) * 1024 * 1024)
 MAX_FRAME_BYTES = 1 * 1024 * 1024
 MAX_IMAGE_PIXELS = 20_000_000
 MAX_WEBSOCKETS = 3

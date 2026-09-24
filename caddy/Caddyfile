@@ -1,5 +1,5 @@
 {
-	email marvin.krausser277@gmail.com
+	email {$CADDY_EMAIL:marvin.krausser277@gmail.com}
 }
 
 (common) {
@@ -25,7 +25,7 @@ marvinkrausser.com {
 api.marvinkrausser.com {
 	import common
 	request_body {
-		max_size 10MB
+		max_size {$CADDY_MAX_BODY:16MB}
 	}
 	reverse_proxy cnn_api:8000
 }

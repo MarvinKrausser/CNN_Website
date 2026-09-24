@@ -7,6 +7,10 @@ services:
       - "80:80"
       - "443:443"
     restart: unless-stopped
+    environment:
+      - CADDY_EMAIL=marvin.krausser277@gmail.com
+      # Keep about 1 MB above the API's MAX_UPLOAD_MEGABYTES (multipart overhead).
+      - CADDY_MAX_BODY=16MB
     volumes:
       - ./caddy/data:/data/caddy
       - ./caddy/config:/config/caddy
@@ -41,6 +45,7 @@ services:
       - PREDICT_RATE_WINDOW=60
       - REVIEW_RATE_LIMIT=5
       - REVIEW_RATE_WINDOW=60
+      - MAX_UPLOAD_MEGABYTES=15
     cpus: "5"
     mem_limit: 3g
 
