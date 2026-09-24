@@ -3,9 +3,6 @@ import { useRef, useEffect, useState } from 'react'
 
 const FRAME_QUALITY = 0.7;
 
-// How many frames per second are sent to the API. The server drops frames
-// arriving faster than ~2.1/s (FACE_MAX_FPS in server.py), so values
-// above that have no effect unless the server limit is raised too.
 const FRAMES_PER_SECOND = 5;
 
 function Object_Detection() {
@@ -183,7 +180,7 @@ function Object_Detection() {
             <h1 className='site-headline'>Face Detection</h1>
             <div className={styles["text-container-introduction"]}>
                 <p>
-                    The model's performance has been limited to 2 FPS due to low-end server hardware constraints.
+                    The model's performance has been limited to 5 FPS due to low-end server hardware constraints.
                 </p>
                 <p>
                     The webcam video is transmitted to a server for processing. The server does not store, train on, or use the data for any purpose other than face detection.
