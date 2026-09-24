@@ -1,0 +1,5 @@
+# Allowlist: only the Caddyfile is copied into the image.
+# data/ and config/ hold TLS certificates and private keys at runtime
+# (mounted as volumes) and must never end up in the build context.
+*
+!Caddyfile

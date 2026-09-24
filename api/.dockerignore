@@ -1,0 +1,13 @@
+# Allowlist: the Dockerfile only copies these three things, so nothing
+# else (training code, datasets, saved models, caches) is sent to the daemon.
+*
+!requirements.txt
+!src/production
+!build_models
+
+# Re-exclude junk inside the allowed paths
+**/__pycache__
+**/*.pyc
+**/*.bat
+**/.env
+**/*.env
