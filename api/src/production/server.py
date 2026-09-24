@@ -38,8 +38,13 @@ IMAGE_SIZE_CNN = 64
 IMAGE_SIZE_YOLO = 64
 
 # ---- Resource limits (the server is weak, keep everything small and bounded) ----
-TORCH_THREADS = int(os.getenv("TORCH_THREADS", "1"))
-MAX_PENDING_INFERENCES = int(os.getenv("MAX_PENDING_INFERENCES", "2"))  # running + waiting
+# Number of predictions (bird or face) that may run at the same time.
+PARALLEL_INFERENCES = max(1, int(os.getenv("PARALLEL_INFERENCES", "1")))
+# Extra requests allowed to wait for a free slot; anything beyond is rejected.
+QUEUED_INFERENCES = max(0, int(os.getenv("QUEUED_INFERENCES", "1")))
+# PyTorch threads used by EACH running prediction. Total CPU use is roughly
+# PARALLEL_INFERENCES * TORCH_THREADS, so keep the product <= your CPU cores.
+TORCH_THREADS = max(1, int(os.getenv("TORCH_THREADS", "1")))
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 MAX_FRAME_BYTES = 1 * 1024 * 1024
 MAX_IMAGE_PIXELS = 20_000_000
@@ -49,7 +54,6 @@ FACE_MAX_FPS = float(os.getenv("FACE_MAX_FPS", "5.5"))  # per websocket connecti
 FACE_MIN_INTERVAL = 1 / FACE_MAX_FPS
 DECODE_DRAFT_SIZE = (256, 256)  # JPEG decodes at reduced scale, still larger than the 64px model input
 
-torch.set_num_threads(TORCH_THREADS)
 Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
 
 origins = [
@@ -166,8 +170,14 @@ class RateLimiter:
         return True
 
 
-predict_limiter = RateLimiter(limit=10, window=60)
-review_limiter = RateLimiter(limit=5, window=60)
+predict_limiter = RateLimiter(
+    limit=max(1, int(os.getenv("PREDICT_RATE_LIMIT", "10"))),
+    window=max(1.0, float(os.getenv("PREDICT_RATE_WINDOW", "60"))),
+)
+review_limiter = RateLimiter(
+    limit=max(1, int(os.getenv("REVIEW_RATE_LIMIT", "5"))),
+    window=max(1.0, float(os.getenv("REVIEW_RATE_WINDOW", "60"))),
+)
 
 
 def rate_limit(limiter: RateLimiter):
@@ -181,15 +191,28 @@ class Busy(Exception):
     pass
 
 
-class InferenceGate:
-    """One worker thread runs all inference. At most `max_pending` jobs
-    (running + waiting) are admitted; everything else is rejected at once
-    instead of queueing up and eating memory."""
+def init_inference_thread():
+    # Must run inside each worker thread: with OpenMP the thread count is a
+    # per-thread setting, so setting it once in the main thread is not enough.
+    torch.set_num_threads(TORCH_THREADS)
 
-    def __init__(self, max_pending: int):
-        self.max_pending = max_pending
+
+class InferenceGate:
+    """Runs predictions on `parallel` worker threads. At most
+    `parallel + queued` jobs (running + waiting) are admitted; everything
+    else is rejected at once instead of queueing up and eating memory.
+
+    The models are in eval mode under torch.inference_mode(), so several
+    threads can safely run forward passes on the same model object."""
+
+    def __init__(self, parallel: int, queued: int):
+        self.max_pending = parallel + queued
         self.pending = 0
-        self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="inference")
+        self.executor = ThreadPoolExecutor(
+            max_workers=parallel,
+            thread_name_prefix="inference",
+            initializer=init_inference_thread,
+        )
 
     async def run(self, fn, *args):
         if self.pending >= self.max_pending:
@@ -201,7 +224,7 @@ class InferenceGate:
             self.pending -= 1
 
 
-gate = InferenceGate(MAX_PENDING_INFERENCES)
+gate = InferenceGate(PARALLEL_INFERENCES, QUEUED_INFERENCES)
 
 
 class InvalidImage(Exception):

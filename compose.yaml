@@ -32,6 +32,15 @@ services:
       - cnn_network
     pull_policy: never
     container_name: cnn_api
+    environment:
+      - PARALLEL_INFERENCES=4
+      - QUEUED_INFERENCES=2
+      - TORCH_THREADS=2
+      - FACE_MAX_FPS=5.5
+      - PREDICT_RATE_LIMIT=10
+      - PREDICT_RATE_WINDOW=60
+      - REVIEW_RATE_LIMIT=5
+      - REVIEW_RATE_WINDOW=60
 
 
   cnn_website:
