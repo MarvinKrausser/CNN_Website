@@ -1,6 +1,38 @@
 import { useState, useRef } from 'react';
 import styles from './Bird_CNN.module.css';
 
+const MAX_SIDE = 1024;
+const JPEG_QUALITY = 0.9;
+
+// Shrinks the photo before upload. The model only uses 64x64 pixels, so this
+// keeps uploads small (~100-300 KB) without affecting the result. Falls back
+// to the original file if the browser can't decode or encode it.
+async function downscale(file) {
+    try {
+        const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+        const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+        const w = Math.round(bitmap.width * scale);
+        const h = Math.round(bitmap.height * scale);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff'; // transparent PNGs would turn black as JPEG
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(bitmap, 0, 0, w, h);
+        bitmap.close();
+
+        const blob = await new Promise((resolve) =>
+            canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY));
+
+        // Keep the original if re-encoding failed or somehow made it bigger.
+        return blob && blob.size < file.size ? blob : file;
+    } catch {
+        return file;
+    }
+}
+
 function Bird_CNN() {
     const apiUrl = process.env.NODE_ENV === "development"
         ? "https://api.marvinkrausser.com"
@@ -50,12 +82,13 @@ function Bird_CNN() {
 
         scrollRefClassifiction.current.scrollIntoView({ behavior: "smooth" });
 
-        const formData = new FormData();
-        formData.append("file", file);
-
         setLoading(true);
 
         try {
+            const upload = await downscale(file);
+            const formData = new FormData();
+            formData.append("file", upload, "image.jpg");
+
             const response = await fetch(`${apiUrl}/predict`, {
                 method: "POST",
                 body: formData,
