@@ -1,6 +1,8 @@
 import styles from './Object_Detection.module.css';
 import { useRef, useEffect, useState } from 'react'
 
+const FRAME_QUALITY = 0.7;
+
 function Object_Detection() {
     const videoRef = useRef(null);
     const canvasRefBBox = useRef(null);
@@ -66,7 +68,7 @@ function Object_Detection() {
             } catch (e) {
                 setError(true);
             }
-        }, "image/jpeg", 1);
+        }, "image/jpeg", FRAME_QUALITY);
     };
 
     const printDefault = () => {
