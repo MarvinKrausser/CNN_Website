@@ -1,9 +1,13 @@
-# Allowlist: the Dockerfile only copies these three things, so nothing
-# else (training code, datasets, saved models, caches) is sent to the daemon.
+# Allowlist: only what the server needs is sent to the Docker daemon, so
+# training code, datasets, saved models and caches stay out of the image.
 *
 !requirements.txt
-!src/production
+!start_server.sh
 !build_models
+!src/__init__.py
+!src/common
+!src/models
+!src/production
 
 # Re-exclude junk inside the allowed paths
 **/__pycache__

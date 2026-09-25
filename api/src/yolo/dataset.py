@@ -1,24 +1,14 @@
-import math
 import os
 import cv2
 import torch
-from PIL import Image
 from torch.utils.data import Dataset
 from pycocotools.coco import COCO 
 import numpy as np
 from torchvision import transforms
 import albumentations as A
 
+from src.common.boxes import image_to_cell_coords, is_center_in_grid_cell
 
-def is_center_in_grid_cell(x, y, img_w, img_h, S, cell_i, cell_j):
-        cell_w = img_w / S
-        cell_h = img_h / S
-
-        # find which cell the center belongs to
-        gt_cell_i = min(int(x / cell_w), S - 1)
-        gt_cell_j = min(int(y / cell_h), S - 1)
-
-        return (gt_cell_i == cell_i) and (gt_cell_j == cell_j)
 
 def one_hot(index, num_classes):
     if index < 0 or index >= num_classes:
@@ -28,18 +18,6 @@ def one_hot(index, num_classes):
     encoding[index] = 1
     return encoding
 
-def turn_grid_centered(x, y, img_w, img_h, S, cell_i, cell_j):
-    cell_w = img_w / S
-    cell_h = img_h / S
-
-    cell_border_w = cell_w * cell_i
-    cell_border_h = cell_h * cell_j
-
-    return x - cell_border_w, y - cell_border_h
-
-def flip_bbox_horizontal(box, image_width):
-    x, y, w, h = box
-    return (image_width - x - w, y, w, h)
 
 class YoloDataset(Dataset):
     def __init__(self, image_dir, annotation_path, img_size=64, grid = 9, transform=False):
@@ -135,7 +113,7 @@ class YoloDataset(Dataset):
                                               img_h=self.img_size, S=self.grid, cell_i=x, cell_j=y):
                         
                         class_one_hot = one_hot(int(label), self.num_classes)
-                        x_grid_centered, y_grid_centered = turn_grid_centered(x=x_center, y=y_center, img_w=self.img_size, 
+                        x_grid_centered, y_grid_centered = image_to_cell_coords(x=x_center, y=y_center, img_w=self.img_size, 
                                               img_h=self.img_size, S=self.grid, cell_i=x, cell_j=y)
 
 

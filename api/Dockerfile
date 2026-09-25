@@ -12,8 +12,11 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src/production/. .
+# Only the code the server needs (see .dockerignore): src/production plus the
+# shared src/models and src/common packages.
+COPY src ./src
 COPY build_models ./build_models
+COPY start_server.sh .
 
 RUN chmod +x start_server.sh
 

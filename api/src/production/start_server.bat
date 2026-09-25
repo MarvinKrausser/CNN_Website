@@ -1,1 +1,0 @@
-python -m uvicorn server:app --ws-max-size 1048576 --reload
