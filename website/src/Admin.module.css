@@ -1,0 +1,140 @@
+.panel {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.row .field {
+    flex: 1;
+    min-width: 140px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+.field input {
+    font: inherit;
+    font-size: 1rem;
+    color: var(--text);
+    background: var(--bg-elevated);
+    border: 1px solid var(--surface-line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-width: 0;
+}
+
+.field input:focus {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 1px;
+}
+
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.buttons button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.danger {
+    background: rgb(220, 70, 70);
+    border-color: rgb(220, 70, 70);
+}
+
+.output {
+    width: 100%;
+    max-width: 800px;
+    margin: 40px 0 60px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.output-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--surface-line);
+    padding-bottom: 8px;
+}
+
+.dim {
+    color: var(--text-dim);
+    font-weight: 400;
+}
+
+.ok {
+    color: rgb(110, 220, 140);
+}
+
+.fail {
+    color: rgb(240, 110, 110);
+}
+
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.table th,
+.table td {
+    text-align: left;
+    vertical-align: top;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--surface-dim);
+}
+
+.table th {
+    color: var(--surface);
+    white-space: nowrap;
+}
+
+.table td {
+    color: var(--text-dim);
+}
+
+.table .text {
+    min-width: 200px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text);
+}
+
+.raw {
+    margin: 0;
+    max-height: 400px;
+    overflow: auto;
+    padding: 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--surface-line);
+    border-radius: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
