@@ -10,7 +10,7 @@ services:
     environment:
       - CADDY_EMAIL=marvin.krausser277@gmail.com
       # Keep about 1 MB above the API's MAX_UPLOAD_MEGABYTES (multipart overhead).
-      - CADDY_MAX_BODY=16MB
+      - CADDY_MAX_BODY_API=16MB
     volumes:
       - ./caddy/data:/data/caddy
       - ./caddy/config:/config/caddy
@@ -20,6 +20,7 @@ services:
     networks:
       - cnn_network
       - gitea_network
+      - portfolio_network
     pull_policy: never
     container_name: caddy_proxy
 
@@ -68,3 +69,5 @@ networks:
     name: cnn_network
   gitea_network:
     name: gitea_network
+  portfolio_network:
+    name: portfolio_network

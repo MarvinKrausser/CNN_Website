@@ -25,7 +25,7 @@ marvinkrausser.com {
 api.marvinkrausser.com {
 	import common
 	request_body {
-		max_size {$CADDY_MAX_BODY:16MB}
+		max_size {$CADDY_MAX_BODY_API:16MB}
 	}
 	reverse_proxy cnn_api:8000
 }
