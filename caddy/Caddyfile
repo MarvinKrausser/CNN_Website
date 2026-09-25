@@ -34,3 +34,8 @@ portfolio.marvinkrausser.com {
 	import common
 	reverse_proxy portfolio_website:8081
 }
+
+git.marvinkrausser.com {
+	import common
+	reverse_proxy gitea_network:3000
+}

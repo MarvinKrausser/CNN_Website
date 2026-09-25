@@ -65,3 +65,5 @@ services:
 networks:
   cnn_network:
     name: cnn_network
+  gitea_network:
+    name: gitea_network
