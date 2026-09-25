@@ -5,8 +5,8 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
 import torch.nn as nn
 
-from .r_cnn import ObjectDetectionCNN, train, eval
-from .cocoDetectionDataset import CocoDetectionDataset
+from src.r_cnn.cocoDetectionDataset import CocoDetectionDataset
+from src.r_cnn.r_cnn import ObjectDetectionCNN, eval, train
 
 
 def get_transform():

@@ -1,16 +1,14 @@
+from enum import Enum
+
 import torch
 import torch.nn as nn
 import torchvision
+from PIL import Image
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
-import matplotlib.pyplot as plt
 
-from util import TransformedSubset, visualizeData
-from .bird_cnn import Bird_CNN, sample, trainCNN
-
-from enum import Enum
-
-from PIL import Image
+from src.bird_cnn.bird_cnn import Bird_CNN, sample, trainCNN
+from src.util import TransformedSubset, visualizeData
 
 SAVE_PATH = "../saved_models"
 IMAGE_SIZE = 128

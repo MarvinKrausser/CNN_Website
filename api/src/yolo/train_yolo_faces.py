@@ -2,17 +2,17 @@ import os
 
 import cv2
 from tqdm import tqdm
-from yolo_dataset import YoloDataset
-from yolo_model import train, Yolo_model, sample
-from yolo_loss import YoloLoss
-from util import TransformedSubset, test_workers_speed, visualizeImage
+import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets
-import torch
 from torchvision.utils import draw_bounding_boxes
-import torch.nn.functional as F
 
-from production.yolo_model_production import convert_prediction
+from src.util import TransformedSubset, test_workers_speed, visualizeImage
+from src.production.yolo_model_production import convert_prediction
+from src.yolo.yolo_dataset import YoloDataset
+from src.yolo.yolo_loss import YoloLoss
+from src.yolo.yolo_model import Yolo_model, sample, train
 
 def view_data(dataset):
     dataloader = DataLoader(dataset=dataset, batch_size=1, shuffle=True)
@@ -140,8 +140,8 @@ def train_yolo():
     loss_module = YoloLoss()
 
 
-    #view_data(dataset_valid)
-    #exit()
+    view_data(dataset_valid)
+    exit()
 
 
     #sample_data(dataloader=val_loader, model=model, device=device, SAVE_PATH=SAVE_PATH)

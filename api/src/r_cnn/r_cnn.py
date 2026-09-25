@@ -1,12 +1,14 @@
 import os
+import random
+
 import cv2
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import torchvision.transforms.functional as TF
 from tqdm import tqdm
-import torch.nn as nn
-from util import iou, visualizeImage
-import random
-import torch.nn.functional as F
+
+from src.util import iou, visualizeImage
 
 
 class ObjectDetectionCNN(nn.Module):
