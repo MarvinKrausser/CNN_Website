@@ -37,5 +37,5 @@ portfolio.marvinkrausser.com {
 
 git.marvinkrausser.com {
 	import common
-	reverse_proxy gitea_network:3000
+	reverse_proxy gitea:3000
 }

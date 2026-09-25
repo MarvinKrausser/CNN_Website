@@ -19,6 +19,7 @@ services:
       - cnn_website
     networks:
       - cnn_network
+      - gitea_network
     pull_policy: never
     container_name: caddy_proxy
 
