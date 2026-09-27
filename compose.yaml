@@ -21,6 +21,8 @@ services:
       - cnn_network
       - gitea_network
       - portfolio_network
+      - wizard_website
+      - wizard_api
     pull_policy: never
     container_name: caddy_proxy
 
@@ -71,3 +73,7 @@ networks:
     name: gitea_network
   portfolio_network:
     name: portfolio_network
+  wizard_website:
+    name: "wizard_website"
+  wizard_api:
+    name: "wizard_api"

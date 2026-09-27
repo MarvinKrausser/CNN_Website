@@ -39,3 +39,28 @@ git.marvinkrausser.com {
 	import common
 	reverse_proxy gitea:3000
 }
+
+game.marvinkrausser.com {
+	import common
+
+	# /wizard and /wizard/website -> /wizard/website/ so relative asset paths resolve
+	redir /wizard /wizard/website/ permanent
+	redir /wizard/ /wizard/website/ permanent
+	redir /wizard/website /wizard/website/ permanent
+
+	# The prefixes are stripped, so the backends see "/..." instead of
+	# "/wizard/api/..." or "/wizard/website/...".
+	@wizard_api path /wizard/api /wizard/api/*
+	handle @wizard_api {
+		uri strip_prefix /wizard/api
+		reverse_proxy wizard_server:8083
+	}
+
+	handle_path /wizard/website/* {
+		reverse_proxy wizard_website:8082
+	}
+
+	handle {
+		respond 404
+	}
+}
