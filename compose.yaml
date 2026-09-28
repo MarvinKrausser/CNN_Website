@@ -23,6 +23,7 @@ services:
       - portfolio_network
       - wizard_website
       - wizard_api
+      - cloud_network
     pull_policy: never
     container_name: caddy_proxy
 
@@ -77,3 +78,5 @@ networks:
     name: "wizard_website"
   wizard_api:
     name: "wizard_api"
+  cloud_network:
+    name: "cloud_network"
