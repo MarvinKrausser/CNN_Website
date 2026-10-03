@@ -23,34 +23,48 @@ def _default_prepare(batch, device):
     return inputs.to(device), targets.to(device)
 
 
-def _run_epoch(model, loss_fn, loader, device, prepare_batch, track_accuracy, optimizer=None, desc=""):
+def _run_epoch(model, loss_fn, loader, device, prepare_batch, track_accuracy, optimizer=None,
+               val_metrics=None, desc=""):
     training = optimizer is not None
     model.train(training)
 
     loss_sum, correct, count = 0.0, 0, 0
+    all_preds, all_targets = [], []
     with torch.set_grad_enabled(training):
         for batch in tqdm(loader, desc=desc, leave=False):
             inputs, targets = prepare_batch(batch, device)
 
             preds = model(inputs)
-            loss = loss_fn(preds, targets)
 
             if training:
+                loss = loss_fn(preds, targets)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+                loss_sum += loss.item() * inputs.size(0)
+            else:
+                all_preds.append(preds)
+                all_targets.append(targets)
 
-            loss_sum += loss.item() * inputs.size(0)
             count += inputs.size(0)
             if track_accuracy:
                 correct += (preds.argmax(dim=1) == targets).sum().item()
 
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-
-    metrics = {"loss": loss_sum / max(count, 1)}
+    if training:
+        metrics = {"loss": loss_sum / max(count, 1)}
+    else:
+        # Validation loss over the whole set at once, so it doesn't depend on
+        # the batch size (YoloLoss averages per batch over the cells with a face).
+        preds, targets = torch.cat(all_preds), torch.cat(all_targets)
+        metrics = {"loss": loss_fn(preds, targets).item()}
+        if val_metrics:
+            metrics.update(val_metrics(preds, targets))
+        del preds, targets, all_preds, all_targets
     if track_accuracy:
         metrics["acc"] = correct / max(count, 1)
+
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     return metrics
 
 
@@ -65,9 +79,10 @@ def fit(
     save_dir: str,
     model_name: str,
     save: bool = True,
-    monitor: str = "loss",          # "loss" (lower is better) or "acc" (higher is better)
+    monitor: str = "loss",          # "loss" (lower is better) or any other val metric (higher is better)
     track_accuracy: bool = False,   # for classifiers
     prepare_batch=_default_prepare,
+    val_metrics=None,               # f(preds, targets) -> dict of extra metrics over the whole val set
     config=None,                    # the task's Config; enables the run log
 ):
     run = None
@@ -76,7 +91,7 @@ def fit(
                      train_loader, val_loader, device, monitor)
     try:
         best = _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epochs,
-                           save_dir, model_name, save, monitor, track_accuracy, prepare_batch, run)
+                           save_dir, model_name, save, monitor, track_accuracy, prepare_batch, val_metrics, run)
     except KeyboardInterrupt:
         if run:
             run.finish("interrupted")
@@ -91,7 +106,7 @@ def fit(
 
 
 def _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epochs,
-                save_dir, model_name, save, monitor, track_accuracy, prepare_batch, run):
+                save_dir, model_name, save, monitor, track_accuracy, prepare_batch, val_metrics, run):
     best = math.inf if monitor == "loss" else -math.inf
 
     for epoch in range(1, epochs + 1):
@@ -99,7 +114,7 @@ def _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epo
         train = _run_epoch(model, loss_fn, train_loader, device, prepare_batch, track_accuracy,
                            optimizer=optimizer, desc=f"Train {epoch}")
         val = _run_epoch(model, loss_fn, val_loader, device, prepare_batch, track_accuracy,
-                         desc=f"Validate {epoch}")
+                         val_metrics=val_metrics, desc=f"Validate {epoch}")
 
         improved = val[monitor] < best if monitor == "loss" else val[monitor] > best
         if improved:
@@ -116,6 +131,7 @@ def _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epo
         if track_accuracy:
             parts.append(f"train acc: {train['acc'] * 100:.1f}% | val acc: {val['acc'] * 100:.1f}%")
         parts.append(f"train loss: {train['loss']:.4f} | val loss: {val['loss']:.4f}")
+        parts += [f"val {k}: {v:.3f}" for k, v in val.items() if k not in ("loss", "acc")]
         if improved and save:
             parts.append("saved")
         print(" | ".join(parts))

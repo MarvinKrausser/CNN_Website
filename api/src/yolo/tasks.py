@@ -16,6 +16,7 @@ from src.models.yolo import Yolo_model, convert_prediction
 from src.yolo.config import Config
 from src.yolo.dataset import YoloDataset
 from src.yolo.loss import YoloLoss
+from src.yolo.metrics import detection_metrics
 
 
 def build_dataset(cfg: Config, folder: str, augment: bool):
@@ -62,7 +63,7 @@ def train(cfg: Config):
 
     fit(model, YoloLoss(), optimizer, train_loader, val_loader, device,
         epochs=cfg.epochs, save_dir=cfg.save_dir, model_name=cfg.model_name, save=cfg.save,
-        monitor="loss", config=cfg)
+        monitor="loss", val_metrics=detection_metrics, config=cfg)
 
 
 def view_data(cfg: Config):

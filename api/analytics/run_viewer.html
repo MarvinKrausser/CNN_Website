@@ -396,6 +396,7 @@ function fmtParams(n) {
   return String(n);
 }
 const metricLabel = (m) => m.replace(/_/g, " ");
+const extraMetricNames = (runs) => [...new Set([...runs].flatMap((r) => Object.keys(r.summary.atBest)))];
 
 // ------------------------------------------------------------------ loading
 
@@ -497,6 +498,13 @@ function makeRun(dir, sourceId, info, metrics, architecture, diff) {
   const valLoss = col("val_loss"), valAcc = col("val_acc");
   const last = rows.length ? rows[rows.length - 1] : {};
   const result = info.result || {};
+  // Extra val metrics (e.g. YOLO's conf_ap): the value at the best epoch, whose weights were kept.
+  const bestRow = rows.find((r) => r.epoch === result.best_epoch) || last;
+  const atBest = {};
+  for (const c of metrics.columns) {
+    const m = c.match(/^val_(.+)$/);
+    if (m && m[1] !== "loss" && m[1] !== "acc" && typeof bestRow[c] === "number") atBest[m[1]] = bestRow[c];
+  }
   return {
     key: dir,
     source: sourceId,
@@ -519,6 +527,7 @@ function makeRun(dir, sourceId, info, metrics, architecture, diff) {
       finalTrainLoss: typeof last.train_loss === "number" ? last.train_loss : null,
       bestEpoch: result.best_epoch ?? null,
       monitor: result.monitor || "loss",
+      atBest,
       duration: result.duration_s ?? null,
       params: (info.model || {}).params ?? null,
       archHash: (info.model || {}).architecture_hash || null,
@@ -676,6 +685,10 @@ function runsColumns(varying) {
     { id: "minValLoss", label: "Min val loss", get: (r) => r.summary.minValLoss, num: true },
   ];
   if (hasAcc) cols.push({ id: "maxValAcc", label: "Max val acc", get: (r) => r.summary.maxValAcc, num: true });
+  for (const name of extraMetricNames(state.runs.values())) {
+    cols.push({ id: "best:" + name, label: metricLabel(name), title: `val ${metricLabel(name)} at the best epoch`,
+      get: (r) => r.summary.atBest[name], num: true });
+  }
   cols.push(
     { id: "bestEpoch", label: "Best epoch", get: (r) => r.summary.bestEpoch, num: true },
     { id: "duration", label: "Duration", get: (r) => r.summary.duration, num: true },
@@ -728,7 +741,7 @@ function renderRunsTable() {
     const th = h("th", {
       class: [sortable ? "sortable" : "", c.num ? "num" : "", c.cfg ? "cfg" : ""].join(" ").trim(),
       scope: "col",
-      title: c.cfg ? "setting that differs between the listed runs" : null,
+      title: c.title || (c.cfg ? "setting that differs between the listed runs" : null),
       "aria-sort": state.sort.col === c.id ? (state.sort.dir > 0 ? "ascending" : "descending") : null,
     }, c.label, arrow ? h("span", { class: "arrow" }, arrow) : null);
     if (sortable) th.addEventListener("click", () => {
@@ -1017,13 +1030,16 @@ function renderScatter() {
   const prevX = xSel.value || recall("scatterX");
   xSel.replaceChildren(...xOptions.map((o) => h("option", { value: o.id }, o.label)));
   xSel.value = xOptions.some((o) => o.id === prevX) ? prevX : xOptions[0].id;
-  const yOptions = Y_MEASURES.filter((mm) => runs.some((r) => mm.get(r) != null));
+  const measures = [...Y_MEASURES.slice(0, 2),
+    ...extraMetricNames(runs).map((name) => ({ id: "best:" + name, label: `val ${metricLabel(name)} at best epoch`, get: (r) => r.summary.atBest[name] })),
+    ...Y_MEASURES.slice(2)];
+  const yOptions = measures.filter((mm) => runs.some((r) => mm.get(r) != null));
   const prevY = ySel.value || recall("scatterY");
   ySel.replaceChildren(...yOptions.map((o) => h("option", { value: o.id }, o.label)));
   ySel.value = yOptions.some((o) => o.id === prevY) ? prevY : (yOptions[0] || {}).id || "";
 
   const xo = xOptions.find((o) => o.id === xSel.value);
-  const yo = Y_MEASURES.find((o) => o.id === ySel.value);
+  const yo = measures.find((o) => o.id === ySel.value);
   const container = $("s-chart");
   if (!xo || !yo) { container.replaceChildren(h("div", { class: "empty" }, "Nothing to plot.")); return; }
 
@@ -1131,6 +1147,7 @@ function renderCompare() {
     const f = flatten({ ...r.info, git: { ...(r.info.git || {}), changed_files: ((r.info.git || {}).changed_files || []).length } }, "", {});
     f["summary.min_val_loss"] = r.summary.minValLoss;
     if (r.summary.maxValAcc != null) f["summary.max_val_acc"] = r.summary.maxValAcc;
+    for (const [name, v] of Object.entries(r.summary.atBest)) f[`summary.val_${name}_at_best_epoch`] = v;
     f["summary.duration"] = fmtDuration(r.summary.duration);
     return f;
   });

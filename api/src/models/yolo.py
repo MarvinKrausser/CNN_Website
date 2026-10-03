@@ -32,9 +32,7 @@ class SkipBlock(nn.Module):
         )
 
     def forward(self, x):
-        # F.dropout defaults to training=True, so this stays active in eval
-        # mode too. Kept as-is because the saved models were trained this way.
-        return F.dropout(F.leaky_relu(self.conv_skip(x) + self.conv(x), inplace=True), p=0.3)
+        return F.leaky_relu(self.conv_skip(x) + self.conv(x), inplace=True)
 
 
 class Yolo_model(nn.Module):
@@ -75,7 +73,6 @@ class Yolo_model(nn.Module):
             nn.Conv2d(c_hidden * 4, c_hidden * 8, kernel_size=3, padding=1),
             nn.BatchNorm2d(c_hidden * 8),
             nn.LeakyReLU(inplace=True),
-            nn.Dropout(0.3),
 
             nn.AdaptiveAvgPool2d((grid, grid)),
             nn.Conv2d(c_hidden * 8, boxes * 5 + labels, kernel_size=1)

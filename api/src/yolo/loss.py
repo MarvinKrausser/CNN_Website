@@ -41,7 +41,8 @@ class YoloLoss(nn.Module):
         ) if noobj_mask.any() else torch.tensor(0.0, device=predictions.device)
 
 
-        class_loss = F.binary_cross_entropy_with_logits(
+        # The model already applies a sigmoid, so these are probabilities.
+        class_loss = F.binary_cross_entropy(
             pred_classes[obj_mask],
             target_classes[obj_mask]
         ) if obj_mask.any() else torch.tensor(0.0, device=predictions.device)
