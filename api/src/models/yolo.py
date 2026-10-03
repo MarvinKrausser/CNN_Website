@@ -36,8 +36,8 @@ class SkipBlock(nn.Module):
 
 
 class Yolo_model(nn.Module):
-    """Output: [batch, grid, grid, boxes*5 + labels] with per cell
-    (x, y, w, h, confidence, classes...).
+    """Output: [batch, grid x (column), grid y (row), boxes*5 + labels] with
+    per cell (x, y, w, h, confidence, classes...).
 
     size_activation decides how w/h are produced:
       "exp"     - exp(x), used by the deployed build_models/face_detection_yolo
@@ -79,7 +79,8 @@ class Yolo_model(nn.Module):
         )
 
     def forward(self, x):
-        x = self.model(x).permute(0, 2, 3, 1)
+        # [batch, C, rows, cols] -> [batch, cols, rows, C]: cell [x, y] like the targets
+        x = self.model(x).permute(0, 3, 2, 1)
         if self.size_activation == "sigmoid":
             return F.sigmoid(x)
         center = F.sigmoid(x[..., :2])
