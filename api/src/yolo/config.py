@@ -35,6 +35,10 @@ class Config:
     model_name: str = "face_detection_yolo"
     save: bool = True
 
+    # Run log (src/common/run_log.py): one folder per training run
+    runs_dir: str = "runs"            # empty = no run log
+    run_name: str = ""                # added to the run folder name, e.g. "bn-lr3e-4"
+
     # sample / webcam tasks
     checkpoint: str = ""              # empty = <save_dir>/<model_name>/<model_name>
     threshold: float = 0.95           # confidence needed to draw a box

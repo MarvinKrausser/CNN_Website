@@ -2,7 +2,10 @@
 
 Each epoch trains, validates, prints the metrics and saves the model when the
 monitored metric improves. `prepare_batch` turns a loader batch into
-(inputs, targets); the default just moves both to the device."""
+(inputs, targets); the default just moves both to the device.
+
+Passing the task's `config` also records the run (settings, architecture,
+metrics per epoch, best weights) under config.runs_dir, see run_log.py."""
 
 import math
 import time
@@ -12,6 +15,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from src.common.checkpoints import save_checkpoint
+from src.common.run_log import RunLog
 
 
 def _default_prepare(batch, device):
@@ -64,10 +68,34 @@ def fit(
     monitor: str = "loss",          # "loss" (lower is better) or "acc" (higher is better)
     track_accuracy: bool = False,   # for classifiers
     prepare_batch=_default_prepare,
+    config=None,                    # the task's Config; enables the run log
 ):
+    run = None
+    if config is not None and config.runs_dir:
+        run = RunLog(config.runs_dir, model_name, config, model, optimizer, loss_fn,
+                     train_loader, val_loader, device, monitor)
+    try:
+        best = _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epochs,
+                           save_dir, model_name, save, monitor, track_accuracy, prepare_batch, run)
+    except KeyboardInterrupt:
+        if run:
+            run.finish("interrupted")
+        raise
+    except Exception as e:
+        if run:
+            run.finish("failed", error=repr(e))
+        raise
+    if run:
+        run.finish("completed")
+    return best
+
+
+def _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epochs,
+                save_dir, model_name, save, monitor, track_accuracy, prepare_batch, run):
     best = math.inf if monitor == "loss" else -math.inf
 
     for epoch in range(1, epochs + 1):
+        start = time.perf_counter()
         train = _run_epoch(model, loss_fn, train_loader, device, prepare_batch, track_accuracy,
                            optimizer=optimizer, desc=f"Train {epoch}")
         val = _run_epoch(model, loss_fn, val_loader, device, prepare_batch, track_accuracy,
@@ -78,6 +106,11 @@ def fit(
             best = val[monitor]
             if save:
                 save_checkpoint(model, save_dir, model_name)
+            if run:
+                run.save_weights(model)
+        if run:
+            run.log_epoch(epoch, train, val, lr=optimizer.param_groups[0]["lr"],
+                          seconds=time.perf_counter() - start, improved=improved)
 
         # Loss is the summed batch loss per sample, shown x1000.
         parts = [f"epoch: {epoch}"]

@@ -14,20 +14,20 @@ class SkipBlock(nn.Module):
         super().__init__()
         self.conv = nn.Sequential(
             nn.Conv2d(c_in, c_out, kernel_size, padding=kernel_size // 2),
-            nn.GroupNorm(num_groups=c_out // 8, num_channels=c_out),
+            nn.BatchNorm2d(c_out),
             nn.LeakyReLU(inplace=True),
 
             nn.Conv2d(c_out, c_out, kernel_size, padding=kernel_size // 2),
-            nn.GroupNorm(num_groups=c_out // 8, num_channels=c_out),
+            nn.BatchNorm2d(c_out),
             nn.LeakyReLU(inplace=True),
 
             nn.Conv2d(c_out, c_out, kernel_size, padding=kernel_size // 2),
-            nn.GroupNorm(num_groups=c_out // 8, num_channels=c_out),
+            nn.BatchNorm2d(c_out),
             nn.LeakyReLU(inplace=True)
         )
         self.conv_skip = nn.Sequential(
             nn.Conv2d(c_in, c_out, 1),
-            nn.GroupNorm(num_groups=c_out // 8, num_channels=c_out),
+            nn.BatchNorm2d(c_out),
             nn.LeakyReLU(inplace=True)
         )
 
@@ -54,7 +54,7 @@ class Yolo_model(nn.Module):
 
         self.model = nn.Sequential(
             nn.Conv2d(c_in, c_hidden, kernel_size=3, padding=1),
-            nn.GroupNorm(num_groups=c_hidden // 8, num_channels=c_hidden),
+            nn.BatchNorm2d(c_hidden),
             nn.LeakyReLU(inplace=True),
 
             SkipBlock(c_in=c_hidden, c_out=c_hidden),
@@ -73,7 +73,7 @@ class Yolo_model(nn.Module):
             SkipBlock(c_in=c_hidden * 4, c_out=c_hidden * 4),
 
             nn.Conv2d(c_hidden * 4, c_hidden * 8, kernel_size=3, padding=1),
-            nn.GroupNorm(num_groups=c_hidden // 2, num_channels=c_hidden * 8),
+            nn.BatchNorm2d(c_hidden * 8),
             nn.LeakyReLU(inplace=True),
             nn.Dropout(0.3),
 

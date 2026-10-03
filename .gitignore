@@ -1,6 +1,7 @@
 api/data/
 api/data.*
 api/saved_models/
+api/runs/
 api/testimages/
 **/__pycache__/
 

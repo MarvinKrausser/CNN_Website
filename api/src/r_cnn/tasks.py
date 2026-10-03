@@ -71,7 +71,7 @@ def train_faces(cfg: Config):
 
     fit(model, nn.CrossEntropyLoss(weight=weights), optimizer, train_loader, val_loader, device,
         epochs=cfg.epochs, save_dir=cfg.save_dir, model_name=cfg.faces_model_name, save=cfg.save,
-        monitor="loss", track_accuracy=True)
+        monitor="loss", track_accuracy=True, config=cfg)
 
 
 def detect_faces(cfg: Config):
@@ -103,7 +103,7 @@ def train_football(cfg: Config):
 
     fit(model, nn.CrossEntropyLoss(), optimizer, train_loader, val_loader, device,
         epochs=cfg.epochs, save_dir=cfg.save_dir, model_name=cfg.football_model_name, save=cfg.save,
-        monitor="loss", track_accuracy=True, prepare_batch=prepare_batch)
+        monitor="loss", track_accuracy=True, prepare_batch=prepare_batch, config=cfg)
 
 
 def detect_football(cfg: Config):

@@ -62,7 +62,7 @@ def train(cfg: Config):
 
     fit(model, YoloLoss(), optimizer, train_loader, val_loader, device,
         epochs=cfg.epochs, save_dir=cfg.save_dir, model_name=cfg.model_name, save=cfg.save,
-        monitor="loss")
+        monitor="loss", config=cfg)
 
 
 def view_data(cfg: Config):

@@ -28,6 +28,10 @@ class Config:
     model_name: str = "bird_cnn"
     save: bool = True
 
+    # Run log (src/common/run_log.py): one folder per training run
+    runs_dir: str = "runs"            # empty = no run log
+    run_name: str = ""                # added to the run folder name, e.g. "bn-lr3e-4"
+
     # predict task
     image: str = "test1.jpg"
     checkpoint: str = ""                          # empty = <save_dir>/<model_name>/<model_name>

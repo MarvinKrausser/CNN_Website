@@ -56,7 +56,7 @@ def train(cfg: Config):
 
     fit(model, nn.CrossEntropyLoss(), optimizer, train_loader, val_loader, device,
         epochs=cfg.epochs, save_dir=cfg.save_dir, model_name=cfg.model_name, save=cfg.save,
-        monitor="acc", track_accuracy=True)
+        monitor="acc", track_accuracy=True, config=cfg)
 
 
 def view_data(cfg: Config):

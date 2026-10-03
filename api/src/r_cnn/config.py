@@ -40,6 +40,10 @@ class Config:
     football_model_name: str = "object_detection"
     save: bool = True
 
+    # Run log (src/common/run_log.py): one folder per training run
+    runs_dir: str = "runs"            # empty = no run log
+    run_name: str = ""                # added to the run folder name, e.g. "bn-lr3e-4"
+
     # detect tasks: proposals smaller than min_size or larger than max_size are ignored
     image: str = ""                       # detect-faces: image to run on
     min_size: int = 5

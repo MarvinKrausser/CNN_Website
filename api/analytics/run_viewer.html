@@ -1,0 +1,1343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Training Run Viewer</title>
+<!--
+  Visualises and compares the training run logs written by
+  api/src/common/run_log.py (runs/<model>/<run>/run.json, metrics.csv,
+  architecture.txt, changes.diff).
+
+  Open this file directly from disk. Browsers do not let a local page read
+  folders on its own, so pick the api/runs folder (or any folder inside it)
+  with "Open runs folder", or drag folders onto the page. No network access,
+  no external libraries.
+-->
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11,11,11,0.10);
+  --hover: rgba(11,11,11,0.04);
+  --selected-row: rgba(42,120,214,0.07);
+  --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+  --series-5: #e87ba4; --series-6: #008300; --series-7: #4a3aa7; --series-8: #e34948;
+  --good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
+  --added: rgba(12,163,12,0.12); --removed: rgba(208,59,59,0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255,255,255,0.10);
+    --hover: rgba(255,255,255,0.05);
+    --selected-row: rgba(57,135,229,0.12);
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+    --series-5: #d55181; --series-6: #008300; --series-7: #9085e9; --series-8: #e66767;
+    --added: rgba(12,163,12,0.18); --removed: rgba(208,59,59,0.20);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255,255,255,0.10);
+  --hover: rgba(255,255,255,0.05);
+  --selected-row: rgba(57,135,229,0.12);
+  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+  --series-5: #d55181; --series-6: #008300; --series-7: #9085e9; --series-8: #e66767;
+  --added: rgba(12,163,12,0.18); --removed: rgba(208,59,59,0.20);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--page);
+  color: var(--text-primary);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 16px 48px; }
+header.top {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  padding: 20px 0 12px;
+}
+header.top h1 { font-size: 20px; font-weight: 600; margin: 0; }
+header.top .sub { color: var(--text-secondary); font-size: 13px; }
+header.top .spacer { flex: 1; }
+button, select, input[type="text"], input[type="search"] {
+  font: inherit; color: var(--text-primary); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
+}
+button { cursor: pointer; }
+button:hover { background: var(--hover); }
+button.primary { background: var(--series-1); border-color: transparent; color: #fff; font-weight: 600; }
+button.primary:hover { filter: brightness(1.08); }
+button:disabled { opacity: .5; cursor: default; }
+label.inline { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 13px; white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px; margin-top: 16px;
+}
+.card > h2 { font-size: 15px; font-weight: 600; margin: 0 0 2px; }
+.card > .desc { color: var(--text-secondary); font-size: 13px; margin: 0 0 12px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 12px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; }
+.filters input[type="search"] { min-width: 220px; flex: 1 1 220px; max-width: 360px; }
+.muted { color: var(--muted); }
+.note { color: var(--text-secondary); font-size: 13px; }
+
+/* Empty state / drop zone */
+#drop {
+  margin-top: 24px; border: 2px dashed var(--axis); border-radius: 16px;
+  padding: 56px 24px; text-align: center; color: var(--text-secondary);
+}
+#drop.over, body.dragging #drop { border-color: var(--series-1); background: var(--selected-row); }
+#drop h2 { color: var(--text-primary); font-size: 18px; margin: 0 0 8px; }
+#drop code, .card code { background: var(--hover); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+#drop p { margin: 6px auto; max-width: 620px; }
+#drop .actions { margin-top: 18px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--grid); white-space: nowrap; vertical-align: top; }
+th { color: var(--text-secondary); font-weight: 600; background: var(--surface); position: sticky; top: 0; z-index: 1; }
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { color: var(--text-primary); }
+th .arrow { color: var(--muted); font-size: 11px; margin-left: 3px; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tbody tr:last-child td { border-bottom: none; }
+#runs-table tbody tr { cursor: pointer; }
+#runs-table tbody tr:hover { background: var(--hover); }
+#runs-table tbody tr.sel { background: var(--selected-row); }
+th.cfg { color: var(--text-primary); }
+th.cfg::before { content: "⚙ "; color: var(--muted); font-weight: 400; }
+.runs-scroll { max-height: 460px; overflow: auto; }
+.key { display: inline-block; width: 16px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 6px; border-radius: 1px; }
+.key.dashed { border-top-style: dashed; }
+.status { display: inline-flex; align-items: center; gap: 5px; }
+.status .ico { font-weight: 700; width: 1em; text-align: center; }
+.status.completed .ico { color: var(--good); }
+.status.running .ico { color: var(--warning); }
+.status.interrupted .ico { color: var(--serious); }
+.status.failed .ico { color: var(--critical); }
+
+/* Charts */
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart svg text { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.chart svg text.label { fill: var(--text-secondary); font-size: 12px; }
+.chart svg text.axis-title { fill: var(--text-secondary); font-size: 12px; }
+.chart svg .grid line { stroke: var(--grid); stroke-width: 1; }
+.chart svg .baseline { stroke: var(--axis); stroke-width: 1; }
+.chart svg .series { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart svg .crosshair { stroke: var(--axis); stroke-width: 1; }
+.chart .empty { padding: 48px 0; text-align: center; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 8px; font-size: 13px; color: var(--text-secondary); }
+.legend span { display: inline-flex; align-items: center; }
+.tooltip {
+  position: absolute; pointer-events: none; z-index: 5; min-width: 160px; max-width: 360px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12); padding: 8px 10px; font-size: 12px;
+}
+.tooltip .t-head { color: var(--text-secondary); margin-bottom: 4px; }
+.tooltip .t-row { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tooltip .t-row b { font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.tooltip .t-row span.n { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; }
+details { margin-top: 10px; }
+details summary { cursor: pointer; color: var(--text-secondary); font-size: 13px; }
+details .table-wrap { margin-top: 8px; max-height: 360px; overflow: auto; }
+
+/* Compare & diff */
+#compare-table td.k { color: var(--text-secondary); }
+#compare-table tr.section td { background: var(--hover); color: var(--text-primary); font-weight: 600; }
+#compare-table tr.diff td.k { color: var(--text-primary); font-weight: 600; }
+#compare-table tr.diff td.k::before { content: "≠ "; color: var(--serious); }
+#compare-table td.v { max-width: 340px; overflow: hidden; text-overflow: ellipsis; }
+pre.code {
+  margin: 0; padding: 8px 0; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow: auto; max-height: 520px; border: 1px solid var(--border); border-radius: 8px; background: var(--page);
+}
+pre.code div { padding: 0 12px; white-space: pre; }
+pre.code .add { background: var(--added); }
+pre.code .del { background: var(--removed); }
+pre.code .hunk { color: var(--series-7); }
+pre.code .meta { color: var(--muted); }
+.split2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 860px) { .split2 { grid-template-columns: 1fr; } }
+.banner { margin-top: 12px; padding: 8px 12px; border-radius: 8px; background: var(--hover); color: var(--text-secondary); font-size: 13px; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Training runs</h1>
+      <div class="sub" id="source-info">No runs loaded</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="primary" id="btn-open">Open runs folder</button>
+    <label class="inline" id="live-wrap" title="Re-reads the opened folder every 10 seconds (Chrome / Edge)">
+      <input type="checkbox" id="live"> Live refresh
+    </label>
+    <button id="btn-clear" title="Remove all loaded runs">Clear</button>
+    <button id="btn-theme" title="Switch colour theme">Theme: auto</button>
+    <input type="file" id="file-input" webkitdirectory directory multiple hidden>
+  </header>
+
+  <section id="drop">
+    <h2>Load training logs</h2>
+    <p>Open the <code>api/runs</code> folder, a series folder inside it, or a single run folder.
+       You can also drag one or more folders onto this page.</p>
+    <p class="muted">Each run folder needs a <code>run.json</code>; <code>metrics.csv</code>,
+       <code>architecture.txt</code> and <code>changes.diff</code> are used when present.
+       Model weights are never read.</p>
+    <div class="actions"><button class="primary" id="btn-open-2">Open runs folder</button></div>
+  </section>
+
+  <main id="app" hidden>
+    <div class="filters" role="group" aria-label="Filters">
+      <input type="search" id="f-q" placeholder="Search run, model, series, config…">
+      <select id="f-model" aria-label="Model"></select>
+      <select id="f-series" aria-label="Series"></select>
+      <select id="f-status" aria-label="Status">
+        <option value="">All statuses</option>
+        <option value="completed">Completed</option>
+        <option value="running">Running</option>
+        <option value="interrupted">Interrupted</option>
+        <option value="failed">Failed</option>
+      </select>
+      <span class="note" id="f-count"></span>
+    </div>
+
+    <section class="card">
+      <h2>Runs</h2>
+      <p class="desc">Click rows to select up to 8 runs for the charts and comparisons below.
+        Columns marked ⚙ are settings that differ between the listed runs.</p>
+      <div class="table-wrap runs-scroll"><table id="runs-table"></table></div>
+      <div class="controls" style="margin:10px 0 0">
+        <button id="btn-sel-best" title="Select the 8 listed runs with the lowest validation loss">Select best 8 by val loss</button>
+        <button id="btn-sel-none">Clear selection</button>
+        <span class="note" id="sel-info"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Training curves</h2>
+      <p class="desc" id="curve-desc">Select runs above to plot them.</p>
+      <div class="controls">
+        <label class="inline">Metric <select id="c-metric"></select></label>
+        <label class="inline">Show <select id="c-split">
+          <option value="val">Validation</option>
+          <option value="train">Training</option>
+          <option value="both">Both</option>
+        </select></label>
+        <label class="inline"><input type="checkbox" id="c-log"> Log scale</label>
+        <label class="inline">Smoothing <input type="range" id="c-smooth" min="0" max="0.95" step="0.05" value="0"> <span id="c-smooth-v">0</span></label>
+      </div>
+      <div class="legend" id="c-legend"></div>
+      <div class="chart" id="c-chart"></div>
+      <details id="c-details">
+        <summary>Values per epoch (table)</summary>
+        <div class="table-wrap"><table id="c-table"></table></div>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>Settings vs. result</h2>
+      <p class="desc">Every listed run as one point. Selected runs are coloured; the rest are grey.</p>
+      <div class="controls">
+        <label class="inline">X <select id="s-x"></select></label>
+        <label class="inline">Y <select id="s-y"></select></label>
+        <label class="inline"><input type="checkbox" id="s-logx"> Log X</label>
+      </div>
+      <div class="chart" id="s-chart"></div>
+    </section>
+
+    <section class="card">
+      <h2>Compare selected runs</h2>
+      <div class="controls">
+        <label class="inline"><input type="checkbox" id="cmp-diff" checked> Only rows that differ</label>
+      </div>
+      <div class="table-wrap"><table id="compare-table"></table></div>
+    </section>
+
+    <section class="card">
+      <h2>Architecture</h2>
+      <p class="desc">Model structure from <code>architecture.txt</code>: one run alone, or the difference between two.</p>
+      <div class="controls">
+        <label class="inline">A <select id="a-left"></select></label>
+        <label class="inline">B <select id="a-right"></select></label>
+        <span class="note" id="a-info"></span>
+      </div>
+      <pre class="code" id="a-view"></pre>
+    </section>
+
+    <section class="card">
+      <h2>Code changes</h2>
+      <p class="desc">Uncommitted changes that were in the working tree when the run started (<code>changes.diff</code>).</p>
+      <div class="controls">
+        <label class="inline">Run <select id="d-run"></select></label>
+        <span class="note" id="d-info"></span>
+      </div>
+      <pre class="code" id="d-view"></pre>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+
+// ------------------------------------------------------------------ state
+
+const WANTED = new Set(["run.json", "metrics.csv", "architecture.txt", "changes.diff"]);
+const MAX_SELECTED = 8;
+// Settings that never describe the experiment itself.
+const IGNORED_CONFIG = new Set(["runs_dir", "run_name", "model_name", "save", "save_dir", "checkpoint", "camera", "threshold", "image"]);
+const STATUS_ICON = { completed: "✓", running: "●", interrupted: "■", failed: "✕" };
+
+const state = {
+  runs: new Map(),          // key (folder path) -> run
+  selected: [],             // keys in selection order
+  slots: new Map(),         // key -> colour slot 1..8 (kept while selected)
+  sort: { col: "started", dir: -1 },
+  sources: [],              // {id, kind: "handle"|"static", handle, name}
+  cache: new Map(),         // path -> {stamp, text}
+  timer: null,
+};
+
+const $ = (id) => document.getElementById(id);
+
+function h(tag, props, ...children) {
+  const el = document.createElement(tag);
+  if (props) for (const [k, v] of Object.entries(props)) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k === "style") el.setAttribute("style", v);
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "text") el.textContent = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of children.flat()) {
+    if (c == null || c === false) continue;
+    el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  }
+  return el;
+}
+
+const SVGNS = "http://www.w3.org/2000/svg";
+function s(tag, attrs, text) {
+  const el = document.createElementNS(SVGNS, tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) if (v != null) el.setAttribute(k, v);
+  if (text != null) el.textContent = text;
+  return el;
+}
+
+function store(key, value) { try { localStorage.setItem("runviewer." + key, value); } catch (e) { /* storage unavailable */ } }
+function recall(key) { try { return localStorage.getItem("runviewer." + key); } catch (e) { return null; } }
+
+// ------------------------------------------------------------------ formatting
+
+function fmt(v) {
+  if (v == null || v === "" || (typeof v === "number" && !isFinite(v))) return "—";
+  if (typeof v === "boolean") return v ? "true" : "false";
+  if (typeof v !== "number") return typeof v === "object" ? JSON.stringify(v) : String(v);
+  if (Number.isInteger(v)) return Math.abs(v) >= 10000 ? v.toLocaleString("en-US") : String(v);
+  const a = Math.abs(v);
+  if (a !== 0 && (a < 1e-4 || a >= 1e6)) return v.toExponential(2).replace("e-", "e−");
+  return String(Number(v.toPrecision(4)));
+}
+function fmtAxis(v) {
+  const a = Math.abs(v);
+  if (a >= 1e6) return Number((v / 1e6).toPrecision(3)) + "M";
+  if (a >= 1e4) return Number((v / 1e3).toPrecision(3)) + "k";
+  return fmt(v);
+}
+function fmtDuration(sec) {
+  if (sec == null || !isFinite(sec)) return "—";
+  sec = Math.round(sec);
+  const hh = Math.floor(sec / 3600), mm = Math.floor((sec % 3600) / 60), ss = sec % 60;
+  if (hh) return `${hh}h ${String(mm).padStart(2, "0")}m`;
+  if (mm) return `${mm}m ${String(ss).padStart(2, "0")}s`;
+  return `${ss}s`;
+}
+function fmtDate(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function fmtParams(n) {
+  if (n == null) return "—";
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + "k";
+  return String(n);
+}
+const metricLabel = (m) => m.replace(/_/g, " ");
+
+// ------------------------------------------------------------------ loading
+
+// Each loader returns [{path, read: () => Promise<File>}] for the wanted files.
+async function filesFromHandle(dir, prefix) {
+  const out = [];
+  for await (const [name, handle] of dir.entries()) {
+    const path = prefix + "/" + name;
+    if (handle.kind === "directory") out.push(...await filesFromHandle(handle, path));
+    else if (WANTED.has(name)) out.push({ path, read: () => handle.getFile() });
+  }
+  return out;
+}
+function filesFromInput(fileList) {
+  return [...fileList]
+    .filter((f) => WANTED.has(f.name))
+    .map((f) => ({ path: f.webkitRelativePath || f.name, read: () => Promise.resolve(f) }));
+}
+async function filesFromEntry(entry, prefix) {
+  const path = prefix ? prefix + "/" + entry.name : entry.name;
+  if (entry.isFile) {
+    if (!WANTED.has(entry.name)) return [];
+    return [{ path, read: () => new Promise((res, rej) => entry.file(res, rej)) }];
+  }
+  const reader = entry.createReader();
+  const entries = [];
+  for (;;) {   // readEntries returns results in batches
+    const batch = await new Promise((res, rej) => reader.readEntries(res, rej));
+    if (!batch.length) break;
+    entries.push(...batch);
+  }
+  const out = [];
+  for (const e of entries) out.push(...await filesFromEntry(e, path));
+  return out;
+}
+
+async function readText(item) {
+  const file = await item.read();
+  const stamp = file.lastModified + ":" + file.size;
+  const hit = state.cache.get(item.path);
+  if (hit && hit.stamp === stamp) return hit.text;
+  const text = await file.text();
+  state.cache.set(item.path, { stamp, text });
+  return text;
+}
+
+function parseCsv(text) {
+  const lines = text.trim().split(/\r?\n/).filter((l) => l.length);
+  if (lines.length < 2) return { columns: lines.length ? lines[0].split(",") : [], rows: [] };
+  const columns = lines[0].split(",");
+  const rows = lines.slice(1).map((line) => {
+    const cells = line.split(",");
+    const row = {};
+    columns.forEach((c, i) => {
+      const raw = cells[i];
+      if (raw === "True" || raw === "False") row[c] = raw === "True";
+      else if (raw === undefined || raw === "") row[c] = null;
+      else { const n = Number(raw); row[c] = isNaN(n) ? raw : n; }
+    });
+    return row;
+  });
+  return { columns, rows };
+}
+
+async function buildRuns(items, sourceId) {
+  const dirs = new Map();
+  for (const item of items) {
+    const cut = item.path.lastIndexOf("/");
+    const dir = cut < 0 ? "." : item.path.slice(0, cut);
+    const name = item.path.slice(cut + 1);
+    if (!dirs.has(dir)) dirs.set(dir, {});
+    dirs.get(dir)[name] = item;
+  }
+  const runs = [];
+  let broken = 0;
+  for (const [dir, files] of dirs) {
+    if (!files["run.json"]) continue;
+    try {
+      const info = JSON.parse(await readText(files["run.json"]));
+      const metrics = files["metrics.csv"] ? parseCsv(await readText(files["metrics.csv"])) : { columns: [], rows: [] };
+      const architecture = files["architecture.txt"] ? await readText(files["architecture.txt"]) : null;
+      const diff = files["changes.diff"] ? await readText(files["changes.diff"]) : null;
+      runs.push(makeRun(dir, sourceId, info, metrics, architecture, diff));
+    } catch (e) {
+      broken++;
+      console.warn("Could not read run", dir, e);
+    }
+  }
+  return { runs, broken };
+}
+
+function makeRun(dir, sourceId, info, metrics, architecture, diff) {
+  const parts = dir.split("/");
+  // <...series folders>/<model>/<run>; a leading "runs" folder is not a series.
+  let seriesParts = parts.slice(0, -2);
+  if (seriesParts[0] === "runs") seriesParts = seriesParts.slice(1);
+  const rows = metrics.rows;
+  const col = (name) => rows.map((r) => r[name]).filter((v) => typeof v === "number" && isFinite(v));
+  const valLoss = col("val_loss"), valAcc = col("val_acc");
+  const last = rows.length ? rows[rows.length - 1] : {};
+  const result = info.result || {};
+  return {
+    key: dir,
+    source: sourceId,
+    info,
+    name: parts[parts.length - 1],
+    model: info.model_name || parts[parts.length - 2] || "?",
+    series: seriesParts.join("/"),
+    status: result.status || "unknown",
+    started: info.started || "",
+    config: info.config || {},
+    metrics,
+    architecture,
+    diff,
+    summary: {
+      epochs: rows.length || result.epochs_done || 0,
+      epochsPlanned: (info.config || {}).epochs,
+      minValLoss: valLoss.length ? Math.min(...valLoss) : null,
+      maxValAcc: valAcc.length ? Math.max(...valAcc) : null,
+      finalValLoss: typeof last.val_loss === "number" ? last.val_loss : null,
+      finalTrainLoss: typeof last.train_loss === "number" ? last.train_loss : null,
+      bestEpoch: result.best_epoch ?? null,
+      monitor: result.monitor || "loss",
+      duration: result.duration_s ?? null,
+      params: (info.model || {}).params ?? null,
+      archHash: (info.model || {}).architecture_hash || null,
+    },
+  };
+}
+
+async function loadItems(items, source) {
+  if (!items.length) { flash("No run.json files found in that folder."); return; }
+  const { runs, broken } = await buildRuns(items, source.id);
+  if (!runs.length) { flash("No readable runs found in that folder."); return; }
+  if (!state.sources.find((x) => x.id === source.id)) state.sources.push(source);
+  for (const [key, run] of state.runs) if (run.source === source.id) state.runs.delete(key);
+  for (const run of runs) state.runs.set(run.key, run);
+  // Drop selections whose run disappeared.
+  state.selected = state.selected.filter((k) => state.runs.has(k));
+  for (const k of [...state.slots.keys()]) if (!state.runs.has(k)) state.slots.delete(k);
+  if (broken) flash(`${broken} run folder(s) could not be read; see the browser console.`);
+  updateSourceInfo();
+  renderAll();
+}
+
+let sourceCounter = 0;
+async function openFolder() {
+  if (window.showDirectoryPicker) {
+    try {
+      const handle = await window.showDirectoryPicker({ id: "runs", mode: "read" });
+      const source = { id: "s" + ++sourceCounter, kind: "handle", handle, name: handle.name };
+      await loadItems(await filesFromHandle(handle, handle.name), source);
+      return;
+    } catch (e) {
+      if (e && e.name === "AbortError") return;
+      console.warn("showDirectoryPicker failed, using the file input instead", e);
+    }
+  }
+  $("file-input").click();
+}
+
+async function refreshLive() {
+  for (const source of state.sources.filter((x) => x.kind === "handle")) {
+    try {
+      await loadItems(await filesFromHandle(source.handle, source.handle.name), source);
+    } catch (e) { console.warn("Live refresh failed for", source.name, e); }
+  }
+}
+
+function updateSourceInfo() {
+  const n = state.runs.size;
+  const names = state.sources.map((x) => x.name).join(", ");
+  $("source-info").textContent = n ? `${n} run${n === 1 ? "" : "s"} from ${names}` : "No runs loaded";
+  const hasHandle = state.sources.some((x) => x.kind === "handle");
+  $("live").disabled = !hasHandle;
+  $("live-wrap").style.opacity = hasHandle ? 1 : 0.5;
+  $("drop").hidden = n > 0;
+  $("app").hidden = n === 0;
+}
+
+let flashTimer = null;
+function flash(msg) {
+  let el = $("flash");
+  if (!el) { el = h("div", { id: "flash", class: "banner", role: "status" }); document.querySelector("header.top").after(el); }
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => { el.hidden = true; }, 6000);
+}
+
+// ------------------------------------------------------------------ selection & filtering
+
+function filteredRuns() {
+  const q = $("f-q").value.trim().toLowerCase();
+  const model = $("f-model").value, series = $("f-series").value, status = $("f-status").value;
+  return [...state.runs.values()].filter((r) => {
+    if (model && r.model !== model) return false;
+    if (series && r.series !== series) return false;
+    if (status && r.status !== status) return false;
+    if (q) {
+      const hay = [r.name, r.label, r.model, r.series, r.status, JSON.stringify(r.config)].join(" ").toLowerCase();
+      if (!q.split(/\s+/).every((t) => hay.includes(t))) return false;
+    }
+    return true;
+  });
+}
+
+function toggleRun(key) {
+  const i = state.selected.indexOf(key);
+  if (i >= 0) {
+    state.selected.splice(i, 1);
+    state.slots.delete(key);
+  } else {
+    if (state.selected.length >= MAX_SELECTED) { flash(`At most ${MAX_SELECTED} runs can be compared at once.`); return; }
+    state.selected.push(key);
+    const used = new Set(state.slots.values());
+    let slot = 1;
+    while (used.has(slot)) slot++;
+    state.slots.set(key, slot);   // colour follows the run, never its position
+  }
+  renderAll();
+}
+
+const colorOf = (key) => `var(--series-${state.slots.get(key)})`;
+const selectedRuns = () => state.selected.map((k) => state.runs.get(k)).filter(Boolean);
+const runLabel = (r) => r.label;
+
+function lineKey(key, dashed) {
+  return h("span", { class: "key" + (dashed ? " dashed" : ""), style: `border-top-color:${colorOf(key)}` });
+}
+function statusEl(status) {
+  return h("span", { class: "status " + status },
+    h("span", { class: "ico", "aria-hidden": "true", text: STATUS_ICON[status] || "?" }), status);
+}
+
+// Config keys whose values differ between the given runs.
+function varyingConfigKeys(runs) {
+  const keys = new Set();
+  runs.forEach((r) => Object.keys(r.config).forEach((k) => keys.add(k)));
+  // Only differences between runs of the same model count: bird and YOLO
+  // having different image sizes is not an experiment.
+  const byModel = new Map();
+  for (const r of runs) { if (!byModel.has(r.model)) byModel.set(r.model, []); byModel.get(r.model).push(r); }
+  const varying = [...keys].filter((k) => {
+    if (IGNORED_CONFIG.has(k)) return false;
+    return [...byModel.values()].some((group) =>
+      new Set(group.filter((r) => k in r.config).map((r) => JSON.stringify(r.config[k]))).size > 1);
+  });
+  const numeric = (k) => runs.every((r) => !(k in r.config) || typeof r.config[k] === "number");
+  return varying.sort((a, b) => numeric(b) - numeric(a));
+}
+
+// ------------------------------------------------------------------ filters UI
+
+function fillSelect(sel, values, allLabel, labelFn) {
+  const current = sel.value;
+  sel.replaceChildren(h("option", { value: "" }, allLabel), ...values.map((v) => h("option", { value: v }, labelFn ? labelFn(v) : v)));
+  sel.value = values.includes(current) ? current : "";
+}
+function renderFilters() {
+  const all = [...state.runs.values()];
+  fillSelect($("f-model"), [...new Set(all.map((r) => r.model))].sort(), "All models");
+  fillSelect($("f-series"), [...new Set(all.map((r) => r.series))].sort(), "All series", (v) => v || "(no series)");
+}
+
+// ------------------------------------------------------------------ runs table
+
+function runsColumns(varying) {
+  const hasAcc = [...state.runs.values()].some((r) => r.summary.maxValAcc != null);
+  const cols = [
+    { id: "sel", label: "", get: () => 0, sortable: false },
+    { id: "name", label: "Run", get: (r) => r.label },
+    { id: "series", label: "Series", get: (r) => r.series },
+    { id: "model", label: "Model", get: (r) => r.model },
+    { id: "status", label: "Status", get: (r) => r.status },
+    { id: "started", label: "Started", get: (r) => r.started },
+    { id: "epochs", label: "Epochs", get: (r) => r.summary.epochs, num: true },
+    { id: "minValLoss", label: "Min val loss", get: (r) => r.summary.minValLoss, num: true },
+  ];
+  if (hasAcc) cols.push({ id: "maxValAcc", label: "Max val acc", get: (r) => r.summary.maxValAcc, num: true });
+  cols.push(
+    { id: "bestEpoch", label: "Best epoch", get: (r) => r.summary.bestEpoch, num: true },
+    { id: "duration", label: "Duration", get: (r) => r.summary.duration, num: true },
+    { id: "params", label: "Params", get: (r) => r.summary.params, num: true },
+    { id: "arch", label: "Arch", get: (r) => r.summary.archHash },
+  );
+  for (const k of varying) cols.push({ id: "cfg:" + k, label: k, cfg: true, get: (r) => r.config[k], num: true });
+  return cols;
+}
+
+function cellContent(col, r) {
+  switch (col.id) {
+    case "sel": {
+      const on = state.selected.includes(r.key);
+      return h("span", null,
+        h("input", { type: "checkbox", checked: on, "aria-label": "Select " + r.label, tabindex: "-1" }),
+        on ? h("span", { style: "margin-left:6px" }, lineKey(r.key)) : null);
+    }
+    case "series": return r.series || "—";
+    case "status": return statusEl(r.status);
+    case "started": return fmtDate(r.started);
+    case "epochs": return r.summary.epochsPlanned != null ? `${r.summary.epochs} / ${r.summary.epochsPlanned}` : String(r.summary.epochs);
+    case "duration": return fmtDuration(r.summary.duration);
+    case "params": return fmtParams(r.summary.params);
+    case "arch": return r.summary.archHash ? h("code", { title: "architecture hash" }, r.summary.archHash) : "—";
+    default: return fmt(col.get(r));
+  }
+}
+
+function compareValues(a, b) {
+  const na = a == null || a === "", nb = b == null || b === "";
+  if (na || nb) return na === nb ? 0 : na ? 1 : -1;   // empty values always last
+  if (typeof a === "number" && typeof b === "number") return a - b;
+  return String(a).localeCompare(String(b), undefined, { numeric: true });
+}
+
+function renderRunsTable() {
+  const runs = filteredRuns();
+  const varying = varyingConfigKeys(runs);
+  const cols = runsColumns(varying);
+  const sortCol = cols.find((c) => c.id === state.sort.col) || cols.find((c) => c.id === "started");
+  runs.sort((a, b) => {
+    const c = compareValues(sortCol.get(a), sortCol.get(b));
+    return (c === 0 ? 0 : (sortCol.get(a) == null || sortCol.get(b) == null) ? c : c * state.sort.dir);
+  });
+
+  const thead = h("thead", null, h("tr", null, cols.map((c) => {
+    const sortable = c.sortable !== false;
+    const arrow = state.sort.col === c.id ? (state.sort.dir > 0 ? "▲" : "▼") : "";
+    const th = h("th", {
+      class: [sortable ? "sortable" : "", c.num ? "num" : "", c.cfg ? "cfg" : ""].join(" ").trim(),
+      scope: "col",
+      title: c.cfg ? "setting that differs between the listed runs" : null,
+      "aria-sort": state.sort.col === c.id ? (state.sort.dir > 0 ? "ascending" : "descending") : null,
+    }, c.label, arrow ? h("span", { class: "arrow" }, arrow) : null);
+    if (sortable) th.addEventListener("click", () => {
+      state.sort = state.sort.col === c.id ? { col: c.id, dir: -state.sort.dir } : { col: c.id, dir: c.num || c.id === "started" ? -1 : 1 };
+      if (["minValLoss", "name", "series", "model", "status"].includes(c.id) && state.sort.col !== c.id) state.sort.dir = 1;
+      renderRunsTable();
+    });
+    return th;
+  })));
+  const tbody = h("tbody", null, runs.map((r) => {
+    const tr = h("tr", { class: state.selected.includes(r.key) ? "sel" : "", tabindex: "0", title: r.key },
+      cols.map((c) => h("td", { class: c.num ? "num" : "" }, cellContent(c, r))));
+    tr.addEventListener("click", () => toggleRun(r.key));
+    tr.addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggleRun(r.key); } });
+    return tr;
+  }));
+  $("runs-table").replaceChildren(thead, tbody);
+  $("f-count").textContent = `${runs.length} of ${state.runs.size} runs listed`;
+  $("sel-info").textContent = `${state.selected.length} of ${MAX_SELECTED} selected`;
+}
+
+// ------------------------------------------------------------------ chart helpers
+
+function niceStep(span, count) {
+  const raw = span / Math.max(count, 1);
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const err = raw / mag;
+  return (err >= 7.5 ? 10 : err >= 3.5 ? 5 : err >= 1.5 ? 2 : 1) * mag;
+}
+function linearScale(min, max, count, pad) {
+  if (min === max) { const d = Math.abs(min) * 0.1 || 1; min -= d; max += d; }
+  if (pad) { const p = (max - min) * 0.05; min = min >= 0 ? Math.max(0, min - p) : min - p; max += p; }
+  const step = niceStep(max - min, count);
+  const lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step;
+  const ticks = [];
+  for (let v = lo; v <= hi + step / 2; v += step) ticks.push(Number(v.toPrecision(12)));
+  return { lo, hi, ticks, map: (v, a, b) => a + (v - lo) / (hi - lo) * (b - a) };
+}
+function logScale(min, max) {
+  min = Math.max(min, 1e-12);
+  if (min === max) { min /= 2; max *= 2; }
+  // Pad 6% in log space so the extreme points don't sit on the frame.
+  const span = Math.log10(max) - Math.log10(min);
+  const lo = Math.log10(min) - span * 0.06, hi = Math.log10(max) + span * 0.06;
+  let ticks = [];
+  for (let e = Math.floor(lo); e <= Math.ceil(hi); e++) for (const m of [1, 2, 5]) {
+    const v = m * Math.pow(10, e);
+    if (Math.log10(v) >= lo - 1e-9 && Math.log10(v) <= hi + 1e-9) ticks.push(v);
+  }
+  if (ticks.length > 8) ticks = ticks.filter((v) => Math.abs(Math.log10(v) % 1) < 1e-9);
+  if (ticks.length < 2) ticks = [min, max];
+  const L = (v) => Math.log10(Math.max(v, 1e-12));
+  return { lo: Math.pow(10, lo), hi: Math.pow(10, hi), ticks, map: (v, a, b) => a + (L(v) - lo) / (hi - lo) * (b - a) };
+}
+function chartFrame(container, height) {
+  container.replaceChildren();
+  const width = Math.max(container.clientWidth, 280);
+  const svg = s("svg", { viewBox: `0 0 ${width} ${height}`, height, role: "img" });
+  container.append(svg);
+  const tip = h("div", { class: "tooltip", hidden: true });
+  container.append(tip);
+  return { svg, tip, width, height };
+}
+function placeTip(tip, container, x, y) {
+  tip.hidden = false;
+  const cw = container.clientWidth, tw = tip.offsetWidth, th = tip.offsetHeight;
+  let left = x + 14;
+  if (left + tw > cw) left = x - tw - 14;
+  tip.style.left = Math.max(0, left) + "px";
+  tip.style.top = Math.max(0, Math.min(y - th / 2, container.clientHeight - th)) + "px";
+}
+function drawAxes(g, xs, ys, m, w, hgt, xFmt, yFmt, xTitle) {
+  const grid = s("g", { class: "grid" });
+  for (const t of ys.ticks) {
+    const y = ys.map(t, hgt - m.b, m.t);
+    grid.append(s("line", { x1: m.l, x2: w - m.r, y1: y, y2: y }));
+    g.append(s("text", { x: m.l - 8, y: y + 4, "text-anchor": "end" }, yFmt(t)));
+  }
+  g.prepend(grid);
+  g.append(s("line", { class: "baseline", x1: m.l, x2: w - m.r, y1: hgt - m.b, y2: hgt - m.b }));
+  for (const t of xs.ticks) {
+    const x = xs.map(t, m.l, w - m.r);
+    if (x < m.l - 1 || x > w - m.r + 1) continue;
+    g.append(s("text", { x, y: hgt - m.b + 16, "text-anchor": "middle" }, xFmt(t)));
+  }
+  if (xTitle) g.append(s("text", { class: "axis-title", x: (m.l + w - m.r) / 2, y: hgt - 2, "text-anchor": "middle" }, xTitle));
+}
+function tipRow(key, value, name, dashed) {
+  return h("div", { class: "t-row" }, key ? lineKey(key, dashed) : null, h("b", null, value), h("span", { class: "n" }, name));
+}
+
+// ------------------------------------------------------------------ training curves
+
+function curveMetrics() {
+  const names = new Set();
+  for (const r of selectedRuns().length ? selectedRuns() : state.runs.values()) {
+    for (const c of r.metrics.columns) {
+      const m = c.match(/^(train|val)_(.+)$/);
+      if (m) names.add(m[2]);
+      else if (c !== "epoch" && c !== "improved") names.add(c);
+    }
+  }
+  return [...names];
+}
+const isSplitMetric = (metric) => selectedRuns().some((r) => r.metrics.columns.includes("val_" + metric) || r.metrics.columns.includes("train_" + metric));
+
+function ema(values, a) {
+  if (!a) return values;
+  let acc = null;
+  return values.map((v) => (v == null ? v : (acc = acc == null ? v : acc * a + v * (1 - a))));
+}
+
+function renderCurves() {
+  const metricSel = $("c-metric");
+  const metrics = curveMetrics();
+  const prev = metricSel.value || recall("metric") || "loss";
+  metricSel.replaceChildren(...metrics.map((m) => h("option", { value: m }, metricLabel(m))));
+  metricSel.value = metrics.includes(prev) ? prev : (metrics[0] || "");
+  const metric = metricSel.value;
+  const split = isSplitMetric(metric) ? $("c-split").value : "none";
+  $("c-split").disabled = split === "none";
+  const logY = $("c-log").checked;
+  const smooth = Number($("c-smooth").value);
+  $("c-smooth-v").textContent = smooth ? smooth.toFixed(2) : "0";
+
+  const runs = selectedRuns();
+  const container = $("c-chart");
+  const legend = $("c-legend");
+  legend.replaceChildren();
+  $("c-table").replaceChildren();
+  if (!runs.length || !metric) {
+    container.replaceChildren(h("div", { class: "empty" }, "Select one or more runs in the table above."));
+    $("curve-desc").textContent = "Select runs above to plot them.";
+    return;
+  }
+
+  // One series per run and split; train is dashed, validation solid.
+  const parts = split === "none" ? [["", metric]] : split === "both" ? [["val", "val_" + metric], ["train", "train_" + metric]] : [[split, split + "_" + metric]];
+  const series = [];
+  for (const r of runs) for (const [part, column] of parts) {
+    if (!r.metrics.columns.includes(column)) continue;
+    const rows = r.metrics.rows;
+    const raw = rows.map((row) => (typeof row[column] === "number" && isFinite(row[column]) && (!logY || row[column] > 0) ? row[column] : null));
+    const sm = ema(raw, smooth);
+    const pts = rows.map((row, i) => ({ x: row.epoch, y: sm[i], raw: raw[i] })).filter((p) => p.y != null && p.x != null);
+    if (!pts.length) continue;
+    const best = part !== "train" ? rows.find((row) => row.epoch === r.summary.bestEpoch) : null;
+    series.push({ run: r, part, column, pts, dashed: part === "train",
+      best: best && typeof best[column] === "number" ? { x: best.epoch, y: sm[rows.indexOf(best)] } : null });
+  }
+
+  const desc = { val: "validation", train: "training", both: "validation (solid) and training (dashed)", none: "" }[split];
+  $("curve-desc").textContent = `${metricLabel(metric)}${desc ? " — " + desc : ""} per epoch. ` +
+    (split !== "train" ? "Dots mark each run's best epoch. " : "") + "Hover for values.";
+
+  // Legend: always present for 2+ series, identity never colour-only.
+  const plotted = runs.filter((r) => series.some((se) => se.run === r));
+  const missing = runs.length - plotted.length;
+  if (plotted.length > 1 || split === "both") {
+    for (const r of plotted) legend.append(h("span", null, lineKey(r.key), runLabel(r)));
+    if (split === "both") legend.append(h("span", { class: "muted", style: "margin-left:8px" },
+      h("span", { class: "key", style: "border-top-color:var(--text-secondary)" }), "validation", h("span", { style: "width:12px;display:inline-block" }),
+      h("span", { class: "key dashed", style: "border-top-color:var(--text-secondary)" }), "training"));
+  }
+  if (missing && series.length) legend.append(h("span", { class: "muted" }, `${missing} selected run(s) have no ${metricLabel(metric)}`));
+  if (!series.length) {
+    container.replaceChildren(h("div", { class: "empty" }, `The selected runs have no ${metricLabel(metric)} values${logY ? " above 0" : ""}.`));
+    return;
+  }
+
+  const allX = series.flatMap((x) => x.pts.map((p) => p.x));
+  const allY = series.flatMap((x) => x.pts.map((p) => p.y));
+  const height = 340;
+  const frame = chartFrame(container, height);
+  const { svg, tip, width } = frame;
+  const m = { l: 58, r: 16, t: 12, b: 38 };
+  const ys = logY ? logScale(Math.min(...allY), Math.max(...allY)) : linearScale(Math.min(...allY), Math.max(...allY), 5, true);
+  const Y = (v) => ys.map(v, height - m.b, m.t);
+  // Direct end labels (2-4 runs) only when they don't collide; otherwise the legend carries identity.
+  const ends = series.filter((se) => !se.dashed || split === "train")
+    .map((se) => ({ se, y: Y(se.pts[se.pts.length - 1].y) })).sort((a, b) => a.y - b.y);
+  const directLabels = ends.length > 1 && ends.length <= 4 && !ends.some((e, i) => i && e.y - ends[i - 1].y < 14);
+  if (directLabels) m.r = Math.min(16 + Math.max(...runs.map((r) => runLabel(r).length)) * 7, 200);
+  const xs = linearScale(Math.min(...allX), Math.max(...allX), Math.max(2, Math.floor((width - m.l - m.r) / 90)), false);
+  xs.ticks = xs.ticks.filter((t) => Number.isInteger(t));
+  const X = (v) => xs.map(v, m.l, width - m.r);
+  svg.setAttribute("aria-label", `${metricLabel(metric)} per epoch for ${runs.length} runs`);
+
+  const g = s("g");
+  svg.append(g);
+  drawAxes(g, xs, ys, m, width, height, fmtAxis, fmtAxis, "epoch");
+
+  for (const se of series) {
+    const d = se.pts.map((p, i) => `${i ? "L" : "M"}${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join("");
+    g.append(s("path", { class: "series", d, stroke: colorOf(se.run.key), "stroke-dasharray": se.dashed ? "5 4" : null, "stroke-opacity": se.dashed && split === "both" ? 0.75 : null }));
+  }
+  for (const se of series) if (se.best && se.best.y != null) {
+    g.append(s("circle", { cx: X(se.best.x), cy: Y(se.best.y), r: 4.5, fill: colorOf(se.run.key), stroke: "var(--surface)", "stroke-width": 2 }));
+  }
+
+  if (directLabels) for (const e of ends) {
+    g.append(s("text", { class: "label", x: width - m.r + 8, y: e.y + 4 }, runLabel(e.se.run)));
+  }
+
+  // Crosshair + one tooltip listing every series at the hovered epoch.
+  const epochs = [...new Set(allX)].sort((a, b) => a - b);
+  const hover = s("g", { visibility: "hidden" });
+  const line = s("line", { class: "crosshair", y1: m.t, y2: height - m.b });
+  hover.append(line);
+  const dots = series.map((se) => {
+    const c = s("circle", { r: 4, fill: colorOf(se.run.key), stroke: "var(--surface)", "stroke-width": 2 });
+    hover.append(c);
+    return c;
+  });
+  svg.append(hover);
+  const overlay = s("rect", { x: m.l, y: m.t, width: Math.max(width - m.l - m.r, 1), height: height - m.t - m.b, fill: "transparent" });
+  svg.append(overlay);
+  svg.setAttribute("tabindex", "0");
+  let current = null;
+
+  function show(epoch) {
+    current = epoch;
+    const x = X(epoch);
+    line.setAttribute("x1", x); line.setAttribute("x2", x);
+    hover.setAttribute("visibility", "visible");
+    tip.replaceChildren(h("div", { class: "t-head" }, `epoch ${epoch}`));
+    const rows = [];
+    series.forEach((se, i) => {
+      const p = se.pts.find((q) => q.x === epoch);
+      if (!p) { dots[i].setAttribute("visibility", "hidden"); return; }
+      dots[i].setAttribute("visibility", "visible");
+      dots[i].setAttribute("cx", x); dots[i].setAttribute("cy", Y(p.y));
+      rows.push({ y: p.y, el: tipRow(se.run.key, fmt(p.raw), runLabel(se.run) + (split === "both" ? ` · ${se.part}` : ""), se.dashed) });
+    });
+    rows.sort((a, b) => b.y - a.y).forEach((r) => tip.append(r.el));
+    if (smooth) tip.append(h("div", { class: "t-head", style: "margin:4px 0 0" }, "raw values; lines smoothed"));
+    placeTip(tip, container, x, (m.t + height - m.b) / 2);
+  }
+  function hide() { hover.setAttribute("visibility", "hidden"); tip.hidden = true; current = null; }
+  function nearestEpoch(px) {
+    const v = xs.lo + (px - m.l) / (width - m.l - m.r) * (xs.hi - xs.lo);
+    let best = epochs[0];
+    for (const e of epochs) if (Math.abs(e - v) < Math.abs(best - v)) best = e;
+    return best;
+  }
+  overlay.addEventListener("pointermove", (e) => {
+    const rect = svg.getBoundingClientRect();
+    show(nearestEpoch((e.clientX - rect.left) * (width / rect.width)));
+  });
+  overlay.addEventListener("pointerleave", hide);
+  svg.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const i = current == null ? 0 : epochs.indexOf(current) + (e.key === "ArrowRight" ? 1 : -1);
+    show(epochs[Math.max(0, Math.min(epochs.length - 1, i))]);
+  });
+  svg.addEventListener("blur", hide);
+
+  // Table view of exactly what is plotted (raw values).
+  const head = h("tr", null, h("th", { class: "num", scope: "col" }, "epoch"),
+    series.map((se) => h("th", { class: "num", scope: "col" }, lineKey(se.run.key, se.dashed), runLabel(se.run) + (split === "both" ? ` · ${se.part}` : ""))));
+  const body = epochs.map((ep) => h("tr", null, h("td", { class: "num" }, String(ep)),
+    series.map((se) => { const p = se.pts.find((q) => q.x === ep); return h("td", { class: "num" }, p ? fmt(p.raw) : "—"); })));
+  $("c-table").replaceChildren(h("thead", null, head), h("tbody", null, body));
+}
+
+// ------------------------------------------------------------------ settings vs. result
+
+const Y_MEASURES = [
+  { id: "minValLoss", label: "min val loss", get: (r) => r.summary.minValLoss },
+  { id: "maxValAcc", label: "max val acc", get: (r) => r.summary.maxValAcc },
+  { id: "finalValLoss", label: "final val loss", get: (r) => r.summary.finalValLoss },
+  { id: "finalTrainLoss", label: "final train loss", get: (r) => r.summary.finalTrainLoss },
+  { id: "duration", label: "duration (s)", get: (r) => r.summary.duration },
+  { id: "params", label: "parameters", get: (r) => r.summary.params },
+];
+
+function renderScatter() {
+  const runs = filteredRuns();
+  const xSel = $("s-x"), ySel = $("s-y");
+  const varying = varyingConfigKeys(runs);
+  const xOptions = [...varying.map((k) => ({ id: "cfg:" + k, label: k, get: (r) => r.config[k] })),
+    { id: "params", label: "parameters", get: (r) => r.summary.params },
+    { id: "epochs", label: "epochs trained", get: (r) => r.summary.epochs },
+    { id: "started", label: "start time", get: (r) => (r.started ? new Date(r.started).getTime() : null), time: true }];
+  const prevX = xSel.value || recall("scatterX");
+  xSel.replaceChildren(...xOptions.map((o) => h("option", { value: o.id }, o.label)));
+  xSel.value = xOptions.some((o) => o.id === prevX) ? prevX : xOptions[0].id;
+  const yOptions = Y_MEASURES.filter((mm) => runs.some((r) => mm.get(r) != null));
+  const prevY = ySel.value || recall("scatterY");
+  ySel.replaceChildren(...yOptions.map((o) => h("option", { value: o.id }, o.label)));
+  ySel.value = yOptions.some((o) => o.id === prevY) ? prevY : (yOptions[0] || {}).id || "";
+
+  const xo = xOptions.find((o) => o.id === xSel.value);
+  const yo = Y_MEASURES.find((o) => o.id === ySel.value);
+  const container = $("s-chart");
+  if (!xo || !yo) { container.replaceChildren(h("div", { class: "empty" }, "Nothing to plot.")); return; }
+
+  const pts = runs.map((r) => ({ r, xv: xo.get(r), y: yo.get(r) })).filter((p) => p.xv != null && typeof p.y === "number" && isFinite(p.y));
+  if (!pts.length) { container.replaceChildren(h("div", { class: "empty" }, `No listed run has both ${xo.label} and ${yo.label}.`)); return; }
+
+  const numeric = pts.every((p) => typeof p.xv === "number");
+  const logX = numeric && $("s-logx").checked && pts.every((p) => p.xv > 0);
+  $("s-logx").disabled = !numeric;
+  const height = 320;
+  const frame = chartFrame(container, height);
+  const { svg, tip, width } = frame;
+  const m = { l: 58, r: 24, t: 12, b: 38 };
+  const ys = linearScale(Math.min(...pts.map((p) => p.y)), Math.max(...pts.map((p) => p.y)), 5, true);
+  const Y = (v) => ys.map(v, height - m.b, m.t);
+  let X, xs, xFmt = fmtAxis;
+  if (numeric) {
+    const xv = pts.map((p) => p.xv);
+    xs = logX ? logScale(Math.min(...xv), Math.max(...xv)) : linearScale(Math.min(...xv), Math.max(...xv), Math.max(2, Math.floor((width - m.l - m.r) / 90)), true);
+    X = (v) => xs.map(v, m.l, width - m.r);
+    // A series tries only a few values per setting: label exactly those.
+    const distinct = [...new Set(xv)].sort((a, b) => a - b);
+    const roomy = distinct.every((v, i) => !i || X(v) - X(distinct[i - 1]) > Math.max(fmtAxis(v).length, fmtAxis(distinct[i - 1]).length) * 7 + 8);
+    if (!xo.time && distinct.length >= 2 && distinct.length <= 8 && roomy) xs.ticks = distinct;
+    if (xo.time) xFmt = (t) => fmtDate(new Date(t).toISOString()).slice(5);
+  } else {
+    const cats = [...new Set(pts.map((p) => JSON.stringify(p.xv)))].sort();
+    const band = (width - m.l - m.r) / cats.length;
+    const seen = new Map();
+    pts.forEach((p) => {   // spread points that share a category
+      const c = JSON.stringify(p.xv);
+      const n = seen.get(c) || 0; seen.set(c, n + 1);
+      p.jitter = (n % 2 ? 1 : -1) * Math.ceil(n / 2) * 7;
+    });
+    xs = { ticks: cats.map((_, i) => i), map: (i, a) => a + band * (i + 0.5), lo: 0, hi: cats.length };
+    X = (v) => m.l + band * (cats.indexOf(JSON.stringify(v)) + 0.5);
+    xFmt = (i) => { const v = JSON.parse(cats[i]); return typeof v === "string" ? v : fmt(v); };
+  }
+  svg.setAttribute("aria-label", `${yo.label} against ${xo.label}`);
+  const g = s("g");
+  svg.append(g);
+  drawAxes(g, xs, ys, m, width, height, xFmt, fmtAxis, xo.label);
+
+  pts.forEach((p) => { p.px = (numeric ? X(p.xv) : X(p.xv) + (p.jitter || 0)); p.py = Y(p.y); });
+  const sel = (p) => state.selected.includes(p.r.key);
+  // Grey points first, selected on top.
+  for (const p of [...pts.filter((p) => !sel(p)), ...pts.filter(sel)]) {
+    g.append(s("circle", { cx: p.px, cy: p.py, r: sel(p) ? 5 : 4, fill: sel(p) ? colorOf(p.r.key) : "var(--muted)",
+      "fill-opacity": sel(p) ? 1 : 0.55, stroke: "var(--surface)", "stroke-width": 2 }));
+  }
+  const selPts = pts.filter(sel);
+  // Labels go right of the point, or left of it near the right edge.
+  const boxes = selPts.map((p) => {
+    const w = runLabel(p.r).length * 7, left = p.px + 9 + w > width - 4;
+    return { p, left, x0: left ? p.px - 9 - w : p.px + 9, x1: left ? p.px - 9 : p.px + 9 + w, y0: p.py - 8, y1: p.py + 8 };
+  });
+  const overlap = boxes.some((a, i) => boxes.some((b, j) => j > i && a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1));
+  if (selPts.length && selPts.length <= 4 && !overlap) for (const b of boxes) {
+    g.append(s("text", { class: "label", x: b.left ? b.x1 : b.x0, y: b.p.py + 4, "text-anchor": b.left ? "end" : "start" }, runLabel(b.p.r)));
+  }
+
+  // Nearest point within 24px gets the tooltip; clicking it toggles selection.
+  const ring = s("circle", { r: 8, fill: "none", stroke: "var(--text-secondary)", "stroke-width": 1.5, visibility: "hidden" });
+  svg.append(ring);
+  const nearest = (e) => {
+    const rect = svg.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (width / rect.width), y = (e.clientY - rect.top) * (height / rect.height);
+    let best = null, bd = 24 * 24;
+    for (const p of pts) { const d = (p.px - x) ** 2 + (p.py - y) ** 2; if (d < bd) { bd = d; best = p; } }
+    return best;
+  };
+  svg.addEventListener("pointermove", (e) => {
+    const p = nearest(e);
+    if (!p) { ring.setAttribute("visibility", "hidden"); tip.hidden = true; svg.style.cursor = ""; return; }
+    ring.setAttribute("cx", p.px); ring.setAttribute("cy", p.py); ring.setAttribute("visibility", "visible");
+    svg.style.cursor = "pointer";
+    tip.replaceChildren(
+      h("div", { class: "t-head" }, p.r.label),
+      tipRow(sel(p) ? p.r.key : null, fmt(p.y), yo.label),
+      tipRow(null, xo.time ? fmtDate(p.r.started) : fmt(p.xv), xo.label),
+      h("div", { class: "t-head", style: "margin:4px 0 0" }, `${p.r.model}${p.r.series ? " · " + p.r.series : ""} · click to ${sel(p) ? "deselect" : "select"}`));
+    placeTip(tip, container, p.px, p.py);
+  });
+  svg.addEventListener("pointerleave", () => { ring.setAttribute("visibility", "hidden"); tip.hidden = true; });
+  svg.addEventListener("click", (e) => { const p = nearest(e); if (p) toggleRun(p.r.key); });
+}
+
+// ------------------------------------------------------------------ compare table
+
+function flatten(obj, prefix, out) {
+  for (const [k, v] of Object.entries(obj || {})) {
+    const key = prefix ? prefix + "." + k : k;
+    if (v && typeof v === "object" && !Array.isArray(v)) flatten(v, key, out);
+    else out[key] = v;
+  }
+  return out;
+}
+
+function renderCompare() {
+  const runs = selectedRuns();
+  const table = $("compare-table");
+  if (!runs.length) { table.replaceChildren(h("tbody", null, h("tr", null, h("td", { class: "muted" }, "Select runs in the table above to compare them.")))); return; }
+  const onlyDiff = $("cmp-diff").checked && runs.length > 1;
+  const flat = runs.map((r) => {
+    const f = flatten({ ...r.info, git: { ...(r.info.git || {}), changed_files: ((r.info.git || {}).changed_files || []).length } }, "", {});
+    f["summary.min_val_loss"] = r.summary.minValLoss;
+    if (r.summary.maxValAcc != null) f["summary.max_val_acc"] = r.summary.maxValAcc;
+    f["summary.duration"] = fmtDuration(r.summary.duration);
+    return f;
+  });
+  const order = ["summary", "config", "model", "optimizer", "loss", "data", "result", "git", "environment"];
+  const keys = [...new Set(flat.flatMap((f) => Object.keys(f)))].filter((k) => k !== "id" && k !== "started");
+  const section = (k) => (k.includes(".") ? k.split(".")[0] : "run");
+  keys.sort((a, b) => {
+    const sa = order.indexOf(section(a)), sb = order.indexOf(section(b));
+    return (sa < 0 ? 99 : sa) - (sb < 0 ? 99 : sb) || a.localeCompare(b);
+  });
+  const head = h("thead", null, h("tr", null, h("th", { scope: "col" }, "Setting"),
+    runs.map((r) => h("th", { scope: "col", title: r.key }, lineKey(r.key), r.label))));
+  const rows = [];
+  let lastSection = null, shown = 0;
+  for (const k of keys) {
+    const vals = flat.map((f) => f[k]);
+    const differs = new Set(vals.map((v) => JSON.stringify(v))).size > 1;
+    if (onlyDiff && !differs && section(k) !== "summary") continue;
+    const sec = section(k);
+    if (sec !== lastSection) { rows.push(h("tr", { class: "section" }, h("td", { colspan: runs.length + 1 }, sec))); lastSection = sec; }
+    rows.push(h("tr", { class: differs ? "diff" : "" }, h("td", { class: "k" }, sec === "run" ? k : k.slice(sec.length + 1)),
+      vals.map((v) => h("td", { class: "v" + (typeof v === "number" ? " num" : ""), title: typeof v === "string" ? v : null }, fmt(v)))));
+    shown++;
+  }
+  if (onlyDiff && rows.length && shown === keys.filter((k) => section(k) === "summary").length) {
+    rows.push(h("tr", null, h("td", { class: "muted", colspan: runs.length + 1 }, "Apart from the results, all recorded settings are identical.")));
+  }
+  table.replaceChildren(head, h("tbody", null, rows));
+}
+
+// ------------------------------------------------------------------ architecture & code changes
+
+function lineDiff(a, b) {
+  // Longest common subsequence over lines; fine for a few hundred lines.
+  const n = a.length, m = b.length;
+  const dp = Array.from({ length: n + 1 }, () => new Uint32Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+    dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const out = [];
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (a[i] === b[j]) { out.push([" ", a[i]]); i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) out.push(["-", a[i++]]);
+    else out.push(["+", b[j++]]);
+  }
+  while (i < n) out.push(["-", a[i++]]);
+  while (j < m) out.push(["+", b[j++]]);
+  return out;
+}
+
+function runOptions(sel, runs, allowNone, noneLabel) {
+  const prev = sel.value;
+  sel.replaceChildren(...(allowNone ? [h("option", { value: "" }, noneLabel)] : []), ...runs.map((r) => h("option", { value: r.key }, r.label)));
+  if (runs.some((r) => r.key === prev) || (allowNone && prev === "")) sel.value = prev;
+  return sel.value;
+}
+
+function renderArchitecture() {
+  const runs = selectedRuns().filter((r) => r.architecture != null);
+  const view = $("a-view"), info = $("a-info");
+  if (!runs.length) {
+    $("a-left").replaceChildren(); $("a-right").replaceChildren();
+    view.replaceChildren(h("div", { class: "meta" }, "Select runs that have an architecture.txt."));
+    info.textContent = "";
+    return;
+  }
+  const left = runOptions($("a-left"), runs, false);
+  if (!$("a-right").dataset.touched && runs.length > 1) $("a-right").value = "";
+  let right = runOptions($("a-right"), runs.filter((r) => r.key !== left), true, "(none — show A only)");
+  if (!$("a-right").dataset.touched && runs.length > 1 && !right) { right = runs.find((r) => r.key !== left).key; $("a-right").value = right; }
+  const A = state.runs.get(left), B = right ? state.runs.get(right) : null;
+  const lines = [];
+  if (!B) {
+    for (const l of A.architecture.replace(/\n$/, "").split("\n")) lines.push(h("div", null, l));
+    info.textContent = `hash ${A.summary.archHash || "?"} · ${fmtParams(A.summary.params)} parameters`;
+  } else if (A.architecture === B.architecture) {
+    for (const l of A.architecture.replace(/\n$/, "").split("\n")) lines.push(h("div", null, l));
+    info.textContent = `identical architecture (hash ${A.summary.archHash || "?"})`;
+  } else {
+    const d = lineDiff(A.architecture.replace(/\n$/, "").split("\n"), B.architecture.replace(/\n$/, "").split("\n"));
+    const changed = d.filter(([op]) => op !== " ").length;
+    for (const [op, l] of d) lines.push(h("div", { class: op === "+" ? "add" : op === "-" ? "del" : "" }, (op === " " ? "  " : op + " ") + l));
+    info.textContent = `${changed} changed line(s): − only in A (${A.label}), + only in B (${B.label}) · params ${fmtParams(A.summary.params)} → ${fmtParams(B.summary.params)}`;
+  }
+  view.replaceChildren(...lines);
+}
+
+function renderCodeChanges() {
+  const runs = selectedRuns();
+  const view = $("d-view"), info = $("d-info");
+  if (!runs.length) { $("d-run").replaceChildren(); view.replaceChildren(h("div", { class: "meta" }, "Select a run.")); info.textContent = ""; return; }
+  const key = runOptions($("d-run"), runs, false);
+  const r = state.runs.get(key);
+  const git = r.info.git || {};
+  info.textContent = `commit ${git.commit ? git.commit.slice(0, 10) : "?"}${git.branch ? " on " + git.branch : ""}` +
+    (git.changed_files && git.changed_files.length ? ` · ${git.changed_files.length} changed file(s): ${git.changed_files.join(", ")}` : "");
+  if (!r.diff) { view.replaceChildren(h("div", { class: "meta" }, git.dirty === false ? "No uncommitted changes: the run used the committed code." : "No changes.diff recorded for this run.")); return; }
+  view.replaceChildren(...r.diff.replace(/\n$/, "").split("\n").map((l) => h("div", {
+    class: l.startsWith("@@") ? "hunk" : (l.startsWith("+++") || l.startsWith("---") || l.startsWith("diff ") || l.startsWith("index ")) ? "meta" : l.startsWith("+") ? "add" : l.startsWith("-") ? "del" : "",
+  }, l)));
+}
+
+// ------------------------------------------------------------------ wiring
+
+function assignLabels() {
+  const all = [...state.runs.values()];
+  const count = new Map();
+  for (const r of all) { const n = r.config.run_name || r.name; count.set(n, (count.get(n) || 0) + 1); }
+  for (const r of all) {
+    const n = r.config.run_name || r.name;
+    r.label = count.get(n) > 1 ? r.name : n;   // duplicates keep the timestamped folder name
+  }
+}
+
+function renderAll() {
+  if (!state.runs.size) { updateSourceInfo(); return; }
+  assignLabels();
+  renderFilters();
+  renderRunsTable();
+  renderCurves();
+  renderScatter();
+  renderCompare();
+  renderArchitecture();
+  renderCodeChanges();
+}
+
+function applyTheme(mode) {
+  if (mode === "light" || mode === "dark") document.documentElement.setAttribute("data-theme", mode);
+  else document.documentElement.removeAttribute("data-theme");
+  $("btn-theme").textContent = "Theme: " + (mode || "auto");
+}
+
+function init() {
+  applyTheme(recall("theme"));
+  $("btn-theme").addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme");
+    const next = cur === null ? "light" : cur === "light" ? "dark" : "";
+    applyTheme(next); store("theme", next);
+    renderAll();
+  });
+  $("btn-open").addEventListener("click", openFolder);
+  $("btn-open-2").addEventListener("click", openFolder);
+  $("file-input").addEventListener("change", async (e) => {
+    const list = e.target.files;
+    if (!list || !list.length) return;
+    const root = (list[0].webkitRelativePath || "").split("/")[0] || "folder";
+    await loadItems(filesFromInput(list), { id: "s" + ++sourceCounter, kind: "static", name: root });
+    e.target.value = "";
+  });
+  $("btn-clear").addEventListener("click", () => {
+    state.runs.clear(); state.selected = []; state.slots.clear(); state.sources = []; state.cache.clear();
+    $("live").checked = false; clearInterval(state.timer);
+    updateSourceInfo();
+  });
+  $("live").addEventListener("change", (e) => {
+    clearInterval(state.timer);
+    if (e.target.checked) { refreshLive(); state.timer = setInterval(refreshLive, 10000); }
+  });
+
+  // Drag & drop folders anywhere on the page.
+  let depth = 0;
+  document.addEventListener("dragenter", (e) => { e.preventDefault(); depth++; document.body.classList.add("dragging"); });
+  document.addEventListener("dragleave", () => { if (--depth <= 0) { depth = 0; document.body.classList.remove("dragging"); } });
+  document.addEventListener("dragover", (e) => e.preventDefault());
+  document.addEventListener("drop", async (e) => {
+    e.preventDefault(); depth = 0; document.body.classList.remove("dragging");
+    const entries = [...(e.dataTransfer.items || [])].map((it) => it.webkitGetAsEntry && it.webkitGetAsEntry()).filter(Boolean);
+    if (!entries.length) return;
+    for (const entry of entries) {
+      await loadItems(await filesFromEntry(entry, ""), { id: "s" + ++sourceCounter, kind: "static", name: entry.name });
+    }
+  });
+
+  for (const id of ["f-q", "f-model", "f-series", "f-status"]) {
+    $(id).addEventListener("input", () => { renderRunsTable(); renderScatter(); });
+  }
+  $("btn-sel-none").addEventListener("click", () => { state.selected = []; state.slots.clear(); renderAll(); });
+  $("btn-sel-best").addEventListener("click", () => {
+    const best = filteredRuns().filter((r) => r.summary.minValLoss != null)
+      .sort((a, b) => a.summary.minValLoss - b.summary.minValLoss).slice(0, MAX_SELECTED);
+    state.selected = []; state.slots.clear();
+    best.forEach((r, i) => { state.selected.push(r.key); state.slots.set(r.key, i + 1); });
+    renderAll();
+  });
+  $("c-metric").addEventListener("change", (e) => { store("metric", e.target.value); renderCurves(); });
+  for (const id of ["c-split", "c-log", "c-smooth"]) $(id).addEventListener("input", renderCurves);
+  $("s-x").addEventListener("change", (e) => { store("scatterX", e.target.value); renderScatter(); });
+  $("s-y").addEventListener("change", (e) => { store("scatterY", e.target.value); renderScatter(); });
+  $("s-logx").addEventListener("input", renderScatter);
+  $("cmp-diff").addEventListener("input", renderCompare);
+  $("a-left").addEventListener("change", renderArchitecture);
+  $("a-right").addEventListener("change", (e) => { e.target.dataset.touched = "1"; renderArchitecture(); });
+  $("d-run").addEventListener("change", renderCodeChanges);
+
+  let resizeTimer = null;
+  new ResizeObserver(() => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { if (state.runs.size) { renderCurves(); renderScatter(); } }, 120);
+  }).observe($("app"));
+
+  const split = recall("split");
+  if (split) $("c-split").value = split;
+  $("c-split").addEventListener("change", (e) => store("split", e.target.value));
+  updateSourceInfo();
+}
+
+init();
+</script>
+</body>
+</html>
