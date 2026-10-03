@@ -40,7 +40,7 @@ def _run_epoch(model, loss_fn, loader, device, prepare_batch, track_accuracy, op
                 loss.backward()
                 optimizer.step()
 
-            loss_sum += loss.item()
+            loss_sum += loss.item() * inputs.size(0)
             count += inputs.size(0)
             if track_accuracy:
                 correct += (preds.argmax(dim=1) == targets).sum().item()
@@ -112,11 +112,10 @@ def _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epo
             run.log_epoch(epoch, train, val, lr=optimizer.param_groups[0]["lr"],
                           seconds=time.perf_counter() - start, improved=improved)
 
-        # Loss is the summed batch loss per sample, shown x1000.
         parts = [f"epoch: {epoch}"]
         if track_accuracy:
             parts.append(f"train acc: {train['acc'] * 100:.1f}% | val acc: {val['acc'] * 100:.1f}%")
-        parts.append(f"train loss: {train['loss'] * 1000:.2f} | val loss: {val['loss'] * 1000:.2f}")
+        parts.append(f"train loss: {train['loss']:.4f} | val loss: {val['loss']:.4f}")
         if improved and save:
             parts.append("saved")
         print(" | ".join(parts))
