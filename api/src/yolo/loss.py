@@ -13,41 +13,39 @@ class YoloLoss(nn.Module):
         target_boxes = targets[..., :4]
         target_conf = targets[..., 4]
         target_classes = targets[..., 5:]
+        N = predictions.shape[0]
 
         obj_mask = targets[..., 4] == 1
         noobj_mask = targets[..., 4] == 0
 
 
-        if obj_mask.any():
-            box_loss = F.mse_loss(
-                pred_boxes[obj_mask],
-                target_boxes[obj_mask],
-                reduction="mean"
-            )
-        else:
-            box_loss = torch.tensor(0.0, device=predictions.device)
+        box_loss = F.mse_loss(
+            pred_boxes[obj_mask],
+            target_boxes[obj_mask],
+            reduction="sum"
+        ) if obj_mask.any() else torch.tensor(0.0, device=predictions.device)
 
 
         obj_loss = F.mse_loss(
             pred_conf[obj_mask],
             target_conf[obj_mask],
-            reduction="mean"
+            reduction="sum"
         ) if obj_mask.any() else torch.tensor(0.0, device=predictions.device)
 
         noobj_loss = F.mse_loss(
             pred_conf[noobj_mask],
             target_conf[noobj_mask],
-            reduction="mean"
+            reduction="sum"
         ) if noobj_mask.any() else torch.tensor(0.0, device=predictions.device)
 
 
-        # The model already applies a sigmoid, so these are probabilities.
         class_loss = F.binary_cross_entropy(
             pred_classes[obj_mask],
-            target_classes[obj_mask]
+            target_classes[obj_mask],
+            reduction="sum"
         ) if obj_mask.any() else torch.tensor(0.0, device=predictions.device)
 
         
-        total_loss = box_loss + obj_loss + noobj_loss + class_loss
+        total_loss = (box_loss * 5 + obj_loss + noobj_loss * 0.5 + class_loss) / N
 
         return total_loss

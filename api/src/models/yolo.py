@@ -60,17 +60,26 @@ class Yolo_model(nn.Module):
             SkipBlock(c_in=c_hidden, c_out=c_hidden),
             SkipBlock(c_in=c_hidden, c_out=c_hidden),
 
-            SkipBlock(c_in=c_hidden, c_out=c_hidden * 2),
+            nn.Conv2d(c_hidden, c_hidden * 2, kernel_size=3, padding=1, stride=2),
+            nn.LeakyReLU(inplace=True),
+
+            SkipBlock(c_in=c_hidden * 2, c_out=c_hidden * 2),
             SkipBlock(c_in=c_hidden * 2, c_out=c_hidden * 2),
             SkipBlock(c_in=c_hidden * 2, c_out=c_hidden * 2),
             SkipBlock(c_in=c_hidden * 2, c_out=c_hidden * 2),
 
-            SkipBlock(c_in=c_hidden * 2, c_out=c_hidden * 4),
+            nn.Conv2d(c_hidden * 2, c_hidden * 4, kernel_size=3, padding=1, stride=2),
+            nn.LeakyReLU(inplace=True),
+
+            SkipBlock(c_in=c_hidden * 4, c_out=c_hidden * 4),
             SkipBlock(c_in=c_hidden * 4, c_out=c_hidden * 4),
             SkipBlock(c_in=c_hidden * 4, c_out=c_hidden * 4),
             SkipBlock(c_in=c_hidden * 4, c_out=c_hidden * 4),
 
-            nn.Conv2d(c_hidden * 4, c_hidden * 8, kernel_size=3, padding=1),
+            nn.Conv2d(c_hidden * 4, c_hidden * 8, kernel_size=3, padding=1, stride=2),
+            nn.LeakyReLU(inplace=True),
+
+            nn.Conv2d(c_hidden * 8, c_hidden * 8, kernel_size=3, padding=1),
             nn.BatchNorm2d(c_hidden * 8),
             nn.LeakyReLU(inplace=True),
 
