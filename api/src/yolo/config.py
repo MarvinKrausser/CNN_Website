@@ -15,6 +15,11 @@ class Config:
     image_size: int = 64
     grid: int = 6
 
+    # convert-wider: WIDER FACE -> COCO folders <wider_out_dir>/train and /test
+    wider_dir: str = ""               # contains WIDER_train/, WIDER_val/, wider_face_split/
+    wider_out_dir: str = "data/wider_face"
+    wider_min_face: float = 2.0       # drop smaller faces (px after resizing to image_size)
+
     # Model
     c_hidden: int = 16
     boxes: int = 1
@@ -24,8 +29,10 @@ class Config:
     # Training
     epochs: int = 500
     batch_size: int = 64
-    learning_rate: float = 1e-3
-    weight_decay: float = 1e-4
+    learning_rate: float = 1e-3       # peak AdamW learning rate
+    weight_decay: float = 0.05        # AdamW, conv weights only (not biases / BatchNorm)
+    warmup_epochs: int = 3            # linear warmup from learning_rate / 10
+    min_learning_rate: float = 1e-5   # cosine decay ends here at the last epoch
     train_workers: int = 2
     val_workers: int = 0
     device: str = "auto"              # "auto", "cpu", "cuda:0", ...

@@ -4,6 +4,9 @@ Each epoch trains, validates, prints the metrics and saves the model when the
 monitored metric improves. `prepare_batch` turns a loader batch into
 (inputs, targets); the default just moves both to the device.
 
+An optional `scheduler` is stepped once after every epoch, so the learning
+rate logged for an epoch is the one it trained with.
+
 Passing the task's `config` also records the run (settings, architecture,
 metrics per epoch, best weights) under config.runs_dir, see run_log.py."""
 
@@ -21,6 +24,30 @@ from src.common.run_log import RunLog
 def _default_prepare(batch, device):
     inputs, targets = batch
     return inputs.to(device), targets.to(device)
+
+
+def adamw(model, lr, weight_decay):
+    """AdamW that decays only conv/linear weights. Biases and BatchNorm
+    parameters (everything 1-D) are left alone, shrinking them only hurts."""
+    decay = [p for p in model.parameters() if p.requires_grad and p.ndim > 1]
+    no_decay = [p for p in model.parameters() if p.requires_grad and p.ndim <= 1]
+    return torch.optim.AdamW([{"params": decay, "weight_decay": weight_decay},
+                              {"params": no_decay, "weight_decay": 0.0}], lr=lr)
+
+
+def warmup_cosine(optimizer, epochs, warmup_epochs, min_lr):
+    """Per-epoch schedule: linear warmup from lr/10 over warmup_epochs, then
+    cosine decay from lr to min_lr over the remaining epochs."""
+    floor = min_lr / optimizer.param_groups[0]["lr"]
+    decay_epochs = max(epochs - warmup_epochs - 1, 1)
+
+    def factor(epoch):  # epoch counts from 0
+        if epoch < warmup_epochs:
+            return 0.1 + 0.9 * epoch / warmup_epochs
+        progress = min(epoch - warmup_epochs, decay_epochs) / decay_epochs
+        return floor + (1 - floor) * 0.5 * (1 + math.cos(math.pi * progress))
+
+    return torch.optim.lr_scheduler.LambdaLR(optimizer, factor)
 
 
 def _run_epoch(model, loss_fn, loader, device, prepare_batch, track_accuracy, optimizer=None,
@@ -84,6 +111,7 @@ def fit(
     prepare_batch=_default_prepare,
     val_metrics=None,               # f(preds, targets) -> dict of extra metrics over the whole val set
     config=None,                    # the task's Config; enables the run log
+    scheduler=None,                 # LR scheduler, stepped once per epoch
 ):
     run = None
     if config is not None and config.runs_dir:
@@ -91,7 +119,8 @@ def fit(
                      train_loader, val_loader, device, monitor)
     try:
         best = _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epochs,
-                           save_dir, model_name, save, monitor, track_accuracy, prepare_batch, val_metrics, run)
+                           save_dir, model_name, save, monitor, track_accuracy, prepare_batch, val_metrics, run,
+                           scheduler)
     except KeyboardInterrupt:
         if run:
             run.finish("interrupted")
@@ -106,7 +135,8 @@ def fit(
 
 
 def _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epochs,
-                save_dir, model_name, save, monitor, track_accuracy, prepare_batch, val_metrics, run):
+                save_dir, model_name, save, monitor, track_accuracy, prepare_batch, val_metrics, run,
+                scheduler):
     best = math.inf if monitor == "loss" else -math.inf
 
     for epoch in range(1, epochs + 1):
@@ -126,6 +156,8 @@ def _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epo
         if run:
             run.log_epoch(epoch, train, val, lr=optimizer.param_groups[0]["lr"],
                           seconds=time.perf_counter() - start, improved=improved)
+        if scheduler:
+            scheduler.step()
 
         parts = [f"epoch: {epoch}"]
         if track_accuracy:

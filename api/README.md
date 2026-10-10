@@ -92,7 +92,7 @@ api/
 │   │   ├── run_log.py          records every training run to runs/
 │   │   └── visualize.py        matplotlib helpers (lazy import)
 │   ├── bird_cnn/               "bird" task group:   config.py, tasks.py
-│   ├── yolo/                   "yolo" task group:   config.py, tasks.py, dataset.py, loss.py, metrics.py
+│   ├── yolo/                   "yolo" task group:   config.py, tasks.py, dataset.py, loss.py, metrics.py, wider.py
 │   ├── r_cnn/                  "rcnn" task group:   config.py, tasks.py, dataset.py, crops.py, detect.py
 │   └── production/             "server" task group + the FastAPI app
 │       ├── app.py              FastAPI app, CORS, startup (load models, create DB)
@@ -317,14 +317,19 @@ Code: `src/yolo/` · Defaults: `src/yolo/config.py` · Model: [`Yolo_model`](#yo
 | `--augment-val` / `--no-augment-val` | **on** | train, view-data, sample | Augment validation images too (historical default, see [quirks](#known-issues-and-quirks)). |
 | `--image-size` | `64` | all | Model input size (square). |
 | `--grid` | `6` | all | Grid size S: the model predicts an S × S grid. |
+| `--wider-dir` | `""` | convert-wider | WIDER FACE folder with `WIDER_train/`, `WIDER_val/` and `wider_face_split/`. |
+| `--wider-out-dir` | `data/wider_face` | convert-wider | Output folder; gets `train/` and `test/`. |
+| `--wider-min-face` | `2.0` | convert-wider | Drop faces smaller than this (px, after resizing to `--image-size`). |
 | `--c-hidden` | `16` | all | Base channel count (c, 2c, 4c, 8c). |
 | `--boxes` | `1` | all | Boxes per cell. Only 1 is supported by the dataset, loss and decoder. |
 | `--labels` | `1` | all | Number of classes. Must equal the number of categories in the COCO file. |
 | `--size-activation` | `sigmoid` | all | How width/height are produced: `sigmoid` or `exp`. Must match the checkpoint. |
 | `--epochs` | `500` | train | Number of epochs. |
 | `--batch-size` | `64` | train, sample, benchmark-workers | Batch size. |
-| `--learning-rate` | `1e-3` | train | Adam learning rate. |
-| `--weight-decay` | `1e-4` | train | Adam weight decay. |
+| `--learning-rate` | `1e-3` | train | Peak AdamW learning rate (reached after the warmup). |
+| `--weight-decay` | `0.05` | train | AdamW weight decay, applied to conv weights only (not biases or BatchNorm). |
+| `--warmup-epochs` | `3` | train | Linear warmup from `learning-rate / 10` to `learning-rate`. `0` disables it. |
+| `--min-learning-rate` | `1e-5` | train | Cosine decay ends at this value in the last epoch. |
 | `--train-workers` | `2` | train | DataLoader workers for training. |
 | `--val-workers` | `0` | train | DataLoader workers for validation. |
 | `--device` | `auto` | train, sample, benchmark-workers, webcam | `auto`, `cpu`, `cuda:0`, … |
@@ -341,8 +346,13 @@ Code: `src/yolo/` · Defaults: `src/yolo/config.py` · Model: [`Yolo_model`](#yo
 
 Trains the detector on COCO-format data.
 
-- **Optimizer and loss:** Adam with [`YoloLoss`](#loss).
-- **Best checkpoint:** chosen by **validation loss** (lower is better).
+- **Optimizer and loss:** AdamW with [`YoloLoss`](#loss). Weight decay only applies to
+  conv weights; biases and BatchNorm parameters are not decayed.
+- **Learning rate:** linear warmup for `--warmup-epochs`, then cosine decay from
+  `--learning-rate` to `--min-learning-rate` at the last epoch. The `lr` column
+  of the run log shows the value each epoch trained with.
+- **Best checkpoint:** chosen by **validation `conf_ap`** (higher is better).
+  Validation loss tends to keep falling after the detection quality peaks.
 - **Extra validation metrics:** after every epoch it also computes
   [detection metrics](#validation-metrics) on the whole validation set:
   `conf_ap`, `box_iou`, `precision` and `recall`.
@@ -417,6 +427,39 @@ python -m src.main yolo.webcam --camera 1 --threshold 0.9
 
 Needs an OpenCV build with GUI support (`opencv-python`, not the `-headless`
 variant from `requirements.txt`).
+
+#### `yolo.convert-wider`
+
+Converts the [WIDER FACE](http://shuoyang1213.me/WIDERFACE/) dataset into the
+COCO folders `yolo.train` reads. `WIDER_train` becomes `<wider-out-dir>/train`
+and `WIDER_val` becomes `<wider-out-dir>/test`. WIDER's own test split has no
+public boxes, so it is not converted. The images are copied into each folder
+(flat) next to `_annotations.coco.json`, with one category, 1 = face.
+
+`--wider-dir` must contain the unpacked `WIDER_train.zip`, `WIDER_val.zip`
+and `wider_face_split.zip`. The files are found anywhere below it, so nested
+unzips like `WIDER_train/WIDER_train/images` also work.
+
+WIDER is mostly crowds of tiny faces, so the conversion filters for what the
+model can learn from:
+
+- **Small faces:** faces narrower or shorter than `--wider-min-face` px
+  after resizing to `--image-size` are dropped. Faces marked `invalid` are
+  dropped as well.
+- **Shared cells:** an image is skipped when two face centres fall in the
+  same `--grid` cell. The dataset keeps one face per cell, so the other face
+  would be trained as background.
+- **Boxes:** clipped to the image and stored in whole pixels.
+- **Unreadable images:** images OpenCV cannot read are skipped.
+
+Convert with the same `--image-size` and `--grid` you train with. The task
+refuses to overwrite existing `train/` or `test/` folders.
+
+```bash
+python -m src.main yolo.convert-wider --wider-dir ~/Downloads/wider_face
+python -m src.main yolo.convert-wider --wider-dir ~/Downloads/wider_face --image-size 128 --grid 8 --wider-out-dir data/wider_face_128
+python -m src.main yolo.train --train-dir data/wider_face/train --val-dir data/wider_face/test
+```
 
 ---
 
@@ -843,11 +886,15 @@ far slower than the single-shot YOLO model. That is why the website uses YOLO.
    does not depend on the batch size. Optional extra metrics
    (`val_metrics`, e.g. YOLO's detection metrics) are computed the same way.
 3. **Compare:** checks the monitored metric against the best so far.
-   - `monitor="loss"`: lower is better (YOLO, R-CNN).
-   - any other metric, e.g. `"acc"`: higher is better (bird).
+   - `monitor="loss"`: lower is better (R-CNN).
+   - any other metric, e.g. `"acc"` (bird) or `"conf_ap"` (YOLO): higher is better.
 4. **Save on improvement:** if it improved, saves the checkpoint (`--save`)
    and the run's `best.pt`.
 5. **Log:** prints one summary line and appends a row to the run log.
+6. **Schedule:** steps the optional `scheduler` (YOLO uses `warmup_cosine`).
+
+`training.py` also has the optimizer helpers YOLO uses: `adamw(model, lr,
+weight_decay)` (no decay on biases and BatchNorm) and `warmup_cosine(...)`.
 
 Tasks plug in their own batch handling with `prepare_batch`. For example,
 `rcnn.train-football` cuts crops out of full images there.
@@ -1196,6 +1243,7 @@ folder. Unpack it in `api/` with `7z x data.7z`.
 | `faces_scenery/train/`, `test/` | COCO | `yolo.*` (default) | Face detection set: 10,825 training and 793 test images, category 1 = face. |
 | `faces/train/` | COCO | `rcnn.create-dataset` | Face set (3,910 images). |
 | `faces_processed/face/`, `background/` | ImageFolder | `rcnn.train-faces` | Crops made by `rcnn.create-dataset`. |
+| `wider_face/train/`, `test/` | COCO | `yolo.*` | Created by `yolo.convert-wider` from WIDER FACE, category 1 = face. Not in `data.7z`. |
 | `football/train/`, `valid/` | COCO | `rcnn.*-football` | Roboflow football players: 1 = ball, 2 = goalkeeper, 3 = player, 4 = referee. |
 | `faces_2/`, `mnist/`, WIDER Face archives | various | none | Not used by the current code. |
 

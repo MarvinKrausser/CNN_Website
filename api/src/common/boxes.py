@@ -54,10 +54,13 @@ def image_to_cell_coords(x, y, img_w, img_h, S, cell_i, cell_j):
     return x - (img_w / S) * cell_i, y - (img_h / S) * cell_j
 
 
+def grid_cell(x, y, img_w, img_h, S):
+    """Image position -> (cell_i, cell_j) of the S x S grid cell it falls in."""
+    return min(int(x / (img_w / S)), S - 1), min(int(y / (img_h / S)), S - 1)
+
+
 def is_center_in_grid_cell(x, y, img_w, img_h, S, cell_i, cell_j):
-    gt_cell_i = min(int(x / (img_w / S)), S - 1)
-    gt_cell_j = min(int(y / (img_h / S)), S - 1)
-    return (gt_cell_i == cell_i) and (gt_cell_j == cell_j)
+    return grid_cell(x, y, img_w, img_h, S) == (cell_i, cell_j)
 
 
 def scale_box(box, scale_w, scale_h):

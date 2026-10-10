@@ -10,13 +10,14 @@ from torchvision.utils import draw_bounding_boxes
 
 from src.common.checkpoints import checkpoint_path, load_checkpoint
 from src.common.device import get_device
-from src.common.training import benchmark_num_workers, fit
+from src.common.training import adamw, benchmark_num_workers, fit, warmup_cosine
 from src.common.visualize import show_image
 from src.models.yolo import Yolo_model, convert_prediction
 from src.yolo.config import Config
 from src.yolo.dataset import YoloDataset
 from src.yolo.loss import YoloLoss
 from src.yolo.metrics import detection_metrics
+from src.yolo.wider import convert_wider
 
 
 def build_dataset(cfg: Config, folder: str, augment: bool):
@@ -51,7 +52,7 @@ def draw_prediction(label, image, threshold):
 
 
 def train(cfg: Config):
-    """Train the detector; saves the model with the lowest validation loss."""
+    """Train the detector; saves the model with the highest validation conf_ap."""
     device = get_device(cfg.device)
     train_loader = DataLoader(build_dataset(cfg, cfg.train_dir, cfg.augment_train),
                               batch_size=cfg.batch_size, shuffle=True, num_workers=cfg.train_workers)
@@ -59,11 +60,12 @@ def train(cfg: Config):
                             batch_size=cfg.batch_size, shuffle=False, num_workers=cfg.val_workers)
 
     model = build_model(cfg).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
+    optimizer = adamw(model, cfg.learning_rate, cfg.weight_decay)
+    scheduler = warmup_cosine(optimizer, cfg.epochs, cfg.warmup_epochs, cfg.min_learning_rate)
 
     fit(model, YoloLoss(), optimizer, train_loader, val_loader, device,
         epochs=cfg.epochs, save_dir=cfg.save_dir, model_name=cfg.model_name, save=cfg.save,
-        monitor="loss", val_metrics=detection_metrics, config=cfg)
+        monitor="conf_ap", val_metrics=detection_metrics, config=cfg, scheduler=scheduler)
 
 
 def view_data(cfg: Config):
@@ -147,4 +149,5 @@ TASKS = {
     "sample": sample,
     "benchmark-workers": benchmark_workers,
     "webcam": webcam,
+    "convert-wider": convert_wider,
 }
