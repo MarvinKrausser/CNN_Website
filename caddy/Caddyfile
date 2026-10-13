@@ -66,7 +66,7 @@ game.marvinkrausser.com {
 }
 
 cloud.marvinkrausser.com {
-    reverse_proxy nextcloud:80
+    reverse_proxy nextcloud-nextcloud-1:80
 
     redir /.well-known/carddav /remote.php/dav 301
     redir /.well-known/caldav /remote.php/dav 301
