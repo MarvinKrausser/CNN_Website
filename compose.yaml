@@ -79,4 +79,4 @@ networks:
   wizard_api:
     name: "wizard_api"
   cloud_network:
-    name: "cloud_network"
+    external: true
