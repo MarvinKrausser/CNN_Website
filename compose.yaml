@@ -79,4 +79,7 @@ networks:
   wizard_api:
     name: "wizard_api"
   cloud_network:
-    name: "cloud_network"
+    name: cloud_network
+    ipam:
+      config:
+        - subnet: 172.30.84.0/24
