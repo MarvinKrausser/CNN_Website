@@ -17,6 +17,7 @@ from src.yolo.config import Config
 from src.yolo.dataset import YoloDataset
 from src.yolo.loss import YoloLoss
 from src.yolo.metrics import detection_metrics
+from src.yolo.merge import merge_coco
 from src.yolo.wider import convert_wider
 
 
@@ -150,4 +151,5 @@ TASKS = {
     "benchmark-workers": benchmark_workers,
     "webcam": webcam,
     "convert-wider": convert_wider,
+    "merge-coco": merge_coco,
 }

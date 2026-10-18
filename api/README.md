@@ -92,7 +92,7 @@ api/
 │   │   ├── run_log.py          records every training run to runs/
 │   │   └── visualize.py        matplotlib helpers (lazy import)
 │   ├── bird_cnn/               "bird" task group:   config.py, tasks.py
-│   ├── yolo/                   "yolo" task group:   config.py, tasks.py, dataset.py, loss.py, metrics.py, wider.py
+│   ├── yolo/                   "yolo" task group:   config.py, tasks.py, dataset.py, loss.py, metrics.py, wider.py, merge.py
 │   ├── r_cnn/                  "rcnn" task group:   config.py, tasks.py, dataset.py, crops.py, detect.py
 │   └── production/             "server" task group + the FastAPI app
 │       ├── app.py              FastAPI app, CORS, startup (load models, create DB)
@@ -320,6 +320,8 @@ Code: `src/yolo/` · Defaults: `src/yolo/config.py` · Model: [`Yolo_model`](#yo
 | `--wider-dir` | `""` | convert-wider | WIDER FACE folder with `WIDER_train/`, `WIDER_val/` and `wider_face_split/`. |
 | `--wider-out-dir` | `data/wider_face` | convert-wider | Output folder; gets `train/` and `test/`. |
 | `--wider-min-face` | `2.0` | convert-wider | Drop faces smaller than this (px, after resizing to `--image-size`). |
+| `--merge-dirs` | `""` | merge-coco | COCO folders to combine, comma separated. |
+| `--merge-out-dir` | `""` | merge-coco | Output folder for the combined dataset. Must not exist yet. |
 | `--c-hidden` | `16` | all | Base channel count (c, 2c, 4c, 8c). |
 | `--boxes` | `1` | all | Boxes per cell. Only 1 is supported by the dataset, loss and decoder. |
 | `--labels` | `1` | all | Number of classes. Must equal the number of categories in the COCO file. |
@@ -460,6 +462,33 @@ python -m src.main yolo.convert-wider --wider-dir ~/Downloads/wider_face
 python -m src.main yolo.convert-wider --wider-dir ~/Downloads/wider_face --image-size 128 --grid 8 --wider-out-dir data/wider_face_128
 python -m src.main yolo.train --train-dir data/wider_face/train --val-dir data/wider_face/test
 ```
+
+
+#### `yolo.merge-coco`
+
+Combines two or more COCO folders into one, for example to train on WIDER and
+`faces_scenery` together. Run it once per split.
+
+```bash
+python -m src.main yolo.merge-coco \
+  --merge-dirs data/wider_faces_coco/train,data/faces_scenery/train --merge-out-dir data/faces_combined/train
+python -m src.main yolo.merge-coco \
+  --merge-dirs data/wider_faces_coco/test,data/faces_scenery/test --merge-out-dir data/faces_combined/test
+```
+
+- **Images:** hard-linked into the output folder, so they take no extra disk
+  space. If the folders are on different drives, they are copied instead.
+  Each file is renamed `<source>__<file_name>`, e.g.
+  `faces_scenery_train__0001.jpg`, so names from different sources never clash.
+- **Ids:** image and annotation ids are renumbered.
+- **Categories:** merged by name and numbered 1, 2, … in order of first
+  appearance. The same class in both sources becomes one class. The task
+  prints the merged list; `--labels` must equal its length.
+- **Checks:** before writing anything, it stops if a source has no annotation
+  file, if an image listed in it is missing, or if `--merge-out-dir` already exists.
+
+The sources are combined as they are. Prepare each one with the same
+`--image-size` and `--grid` you train with (see `yolo.convert-wider`).
 
 ---
 
@@ -1244,6 +1273,7 @@ folder. Unpack it in `api/` with `7z x data.7z`.
 | `faces/train/` | COCO | `rcnn.create-dataset` | Face set (3,910 images). |
 | `faces_processed/face/`, `background/` | ImageFolder | `rcnn.train-faces` | Crops made by `rcnn.create-dataset`. |
 | `wider_face/train/`, `test/` | COCO | `yolo.*` | Created by `yolo.convert-wider` from WIDER FACE, category 1 = face. Not in `data.7z`. |
+| any `merge-coco` output | COCO | `yolo.*` | Created by `yolo.merge-coco` from other COCO folders. Not in `data.7z`. |
 | `football/train/`, `valid/` | COCO | `rcnn.*-football` | Roboflow football players: 1 = ball, 2 = goalkeeper, 3 = player, 4 = referee. |
 | `faces_2/`, `mnist/`, WIDER Face archives | various | none | Not used by the current code. |
 

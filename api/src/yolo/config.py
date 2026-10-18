@@ -20,6 +20,10 @@ class Config:
     wider_out_dir: str = "data/wider_face"
     wider_min_face: float = 2.0       # drop smaller faces (px after resizing to image_size)
 
+    # merge-coco: combine COCO folders into one
+    merge_dirs: str = ""              # comma separated, e.g. data/wider_faces_coco/train,data/faces_scenery/train
+    merge_out_dir: str = ""
+
     # Model
     c_hidden: int = 16
     boxes: int = 1

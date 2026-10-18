@@ -51,8 +51,7 @@ class Yolo_model(nn.Module):
         self.size_activation = size_activation
 
         self.model = nn.Sequential(
-            #nn.Conv2d(c_in, c_hidden, kernel_size=3, padding=1, stride=2),
-            nn.Conv2d(c_in, c_hidden, kernel_size=3, padding=1),
+            nn.Conv2d(c_in, c_hidden, kernel_size=3, padding=1, stride=2),
             nn.BatchNorm2d(c_hidden),
             nn.LeakyReLU(inplace=True),
 
@@ -61,8 +60,7 @@ class Yolo_model(nn.Module):
             SkipBlock(c_in=c_hidden, c_out=c_hidden),
             SkipBlock(c_in=c_hidden, c_out=c_hidden),
 
-            #nn.Conv2d(c_hidden, c_hidden * 2, kernel_size=5, padding=2, stride=4),
-            nn.Conv2d(c_hidden, c_hidden * 2, kernel_size=3, padding=1, stride=2),
+            nn.Conv2d(c_hidden, c_hidden * 2, kernel_size=5, padding=2, stride=4),
             nn.LeakyReLU(inplace=True),
 
             SkipBlock(c_in=c_hidden * 2, c_out=c_hidden * 2),
@@ -85,7 +83,6 @@ class Yolo_model(nn.Module):
             nn.BatchNorm2d(c_hidden * 8),
             nn.LeakyReLU(inplace=True),
 
-            nn.AdaptiveAvgPool2d((grid, grid)),
             nn.Conv2d(c_hidden * 8, boxes * 5 + labels, kernel_size=1)
         )
 
