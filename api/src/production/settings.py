@@ -24,12 +24,12 @@ BIRD_MODEL_FILE = "bird_cnn"
 BIRD_IMAGE_SIZE = 64
 BIRD_C_HIDDEN = 16
 
-FACE_MODEL_FILE = "face_detection_yolo_2"
-FACE_IMAGE_SIZE = 64
-FACE_GRID = 6
-FACE_C_HIDDEN = 8
+FACE_MODEL_FILE = "face_detection_yolo_3"
+FACE_IMAGE_SIZE = 256
+FACE_GRID = 8
+FACE_C_HIDDEN = 16
 FACE_SIZE_ACTIVATION = "sigmoid"   # must match how the deployed weights were trained
-FACE_THRESHOLD = 0.9
+FACE_THRESHOLD = 0.5
 
 # ---- Resource limits (the server is weak, keep everything small and bounded) ----
 # Number of predictions (bird or face) that may run at the same time. (env)
