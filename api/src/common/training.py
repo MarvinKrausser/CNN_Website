@@ -112,6 +112,7 @@ def fit(
     val_metrics=None,               # f(preds, targets) -> dict of extra metrics over the whole val set
     config=None,                    # the task's Config; enables the run log
     scheduler=None,                 # LR scheduler, stepped once per epoch
+    save_every_epoch: bool = False, # with save: also keep every epoch as <model_name>_epochNNN
 ):
     run = None
     if config is not None and config.runs_dir:
@@ -120,7 +121,7 @@ def fit(
     try:
         best = _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epochs,
                            save_dir, model_name, save, monitor, track_accuracy, prepare_batch, val_metrics, run,
-                           scheduler)
+                           scheduler, save_every_epoch)
     except KeyboardInterrupt:
         if run:
             run.finish("interrupted")
@@ -136,7 +137,7 @@ def fit(
 
 def _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epochs,
                 save_dir, model_name, save, monitor, track_accuracy, prepare_batch, val_metrics, run,
-                scheduler):
+                scheduler, save_every_epoch):
     best = math.inf if monitor == "loss" else -math.inf
 
     for epoch in range(1, epochs + 1):
@@ -153,6 +154,8 @@ def _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epo
                 save_checkpoint(model, save_dir, model_name)
             if run:
                 run.save_weights(model)
+        if save and save_every_epoch:
+            save_checkpoint(model, save_dir, model_name, epoch=epoch)
         if run:
             run.log_epoch(epoch, train, val, lr=optimizer.param_groups[0]["lr"],
                           seconds=time.perf_counter() - start, improved=improved)
@@ -166,6 +169,8 @@ def _fit_epochs(model, loss_fn, optimizer, train_loader, val_loader, device, epo
         parts += [f"val {k}: {v:.3f}" for k, v in val.items() if k not in ("loss", "acc")]
         if improved and save:
             parts.append("saved")
+        if save and save_every_epoch:
+            parts.append(f"kept epoch {epoch}")
         print(" | ".join(parts))
 
     return best

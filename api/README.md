@@ -338,6 +338,7 @@ Code: `src/yolo/` · Defaults: `src/yolo/config.py` · Model: [`Yolo_model`](#yo
 | `--save-dir` | `saved_models` | train, sample, webcam | Root folder of checkpoints. |
 | `--model-name` | `face_detection_yolo` | train, sample, webcam | Checkpoint name. |
 | `--save` / `--no-save` | `--save` | train | Save the best checkpoint. |
+| `--save-every-epoch` / `--no-save-every-epoch` | off | train | With `--save`: also keep every epoch as `<model-name>_epochNNN` next to the best checkpoint. |
 | `--runs-dir` | `runs` | train | Run log folder. Empty disables it. |
 | `--run-name` | `""` | train | Label appended to the run folder name. |
 | `--checkpoint` | `""` | sample, webcam | Explicit weights file. Empty = `<save-dir>/<model-name>/<model-name>`. |
@@ -919,6 +920,8 @@ far slower than the single-shot YOLO model. That is why the website uses YOLO.
    - any other metric, e.g. `"acc"` (bird) or `"conf_ap"` (YOLO): higher is better.
 4. **Save on improvement:** if it improved, saves the checkpoint (`--save`)
    and the run's `best.pt`.
+   With `save_every_epoch` (YOLO: `--save-every-epoch`), every epoch is also
+   saved as `<model_name>_epochNNN`, improved or not.
 5. **Log:** prints one summary line and appends a row to the run log.
 6. **Schedule:** steps the optional `scheduler` (YOLO uses `warmup_cosine`).
 
@@ -938,6 +941,11 @@ DataLoader passes for different worker counts.
 - **Save path:** `<save_dir>/<model_name>/<model_name>`, for example
   `saved_models/face_detection_yolo/face_detection_yolo`. Only the **best**
   epoch is kept, and each improvement overwrites the file.
+- **Every epoch (YOLO, `--save-every-epoch`):** each epoch is additionally
+  saved next to it as `<model_name>_epochNNN`, e.g.
+  `saved_models/face_detection_yolo/face_detection_yolo_epoch042`. Load one with
+  `--checkpoint`. Each file is the model's full size, so 200 epochs of c32
+  take about 2.7 GB.
 - **Format:** a plain `state_dict` (`torch.save(model.state_dict())`).
 - **Loading:** `torch.load(..., weights_only=True, map_location=device)`, then
   `eval()`. Weights trained on a GPU therefore load on a CPU-only machine.

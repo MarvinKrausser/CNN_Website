@@ -3,13 +3,16 @@ from pathlib import Path
 import torch
 
 
-def checkpoint_path(save_dir: str | Path, model_name: str) -> Path:
-    # Layout kept from the original code: <save_dir>/<name>/<name>
-    return Path(save_dir) / model_name / model_name
+def checkpoint_path(save_dir: str | Path, model_name: str, epoch: int | None = None) -> Path:
+    # Layout kept from the original code: <save_dir>/<name>/<name>,
+    # per-epoch checkpoints next to it as <name>_epoch007
+    file_name = model_name if epoch is None else f"{model_name}_epoch{epoch:03d}"
+    return Path(save_dir) / model_name / file_name
 
 
-def save_checkpoint(model: torch.nn.Module, save_dir: str | Path, model_name: str) -> Path:
-    path = checkpoint_path(save_dir, model_name)
+def save_checkpoint(model: torch.nn.Module, save_dir: str | Path, model_name: str,
+                    epoch: int | None = None) -> Path:
+    path = checkpoint_path(save_dir, model_name, epoch)
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), path)
     return path

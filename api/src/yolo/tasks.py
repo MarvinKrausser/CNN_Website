@@ -66,6 +66,7 @@ def train(cfg: Config):
 
     fit(model, YoloLoss(), optimizer, train_loader, val_loader, device,
         epochs=cfg.epochs, save_dir=cfg.save_dir, model_name=cfg.model_name, save=cfg.save,
+        save_every_epoch=cfg.save_every_epoch,
         monitor="conf_ap", val_metrics=detection_metrics, config=cfg, scheduler=scheduler)
 
 

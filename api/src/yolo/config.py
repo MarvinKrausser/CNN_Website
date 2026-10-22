@@ -45,6 +45,7 @@ class Config:
     save_dir: str = "saved_models"
     model_name: str = "face_detection_yolo"
     save: bool = True
+    save_every_epoch: bool = False    # with --save: also keep every epoch as <model_name>_epochNNN
 
     # Run log (src/common/run_log.py): one folder per training run
     runs_dir: str = "runs"            # empty = no run log

@@ -13,10 +13,6 @@
 	log
 }
 
-www.marvinkrausser.com {
-	redir https://marvinkrausser.com{uri} permanent
-}
-
 marvinkrausser.com {
 	import common
 	reverse_proxy cnn_website:8080
