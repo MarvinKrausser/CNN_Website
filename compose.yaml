@@ -24,6 +24,8 @@ services:
       - wizard_website
       - wizard_api
       - cloud_network
+      - actionBlocks_website
+      - actionBlocks_server
     pull_policy: never
     container_name: caddy_proxy
 
@@ -83,3 +85,7 @@ networks:
     ipam:
       config:
         - subnet: 172.30.84.0/24
+  actionBlocks_website:
+    name: "actionBlocks_website"
+  actionBlocks_server:
+    name: "actionBlocks_server"

@@ -56,6 +56,15 @@ game.marvinkrausser.com {
 		reverse_proxy wizard_website:8082
 	}
 
+	# handle_path strips the prefix, so the backends see "/..." only.
+	handle_path /actionblocks/website /actionblocks/website/* {
+		reverse_proxy actionblocks-website:80
+	}
+
+	handle_path /actionblocks/server /actionblocks/server/* {
+		reverse_proxy actionblocks-server:8080
+	}
+
 	handle {
 		respond 404
 	}
