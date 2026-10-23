@@ -56,12 +56,17 @@ game.marvinkrausser.com {
 		reverse_proxy wizard_website:8082
 	}
 
-	# handle_path strips the prefix, so the backends see "/..." only.
-	handle_path /actionblocks/website /actionblocks/website/* {
+	# handle_path takes a single path, so use named matchers to also match the
+	# bare prefix. The prefixes are stripped, so the backends see "/..." only.
+	@actionblocks_website path /actionblocks/website /actionblocks/website/*
+	handle @actionblocks_website {
+		uri strip_prefix /actionblocks/website
 		reverse_proxy actionblocks-website:80
 	}
 
-	handle_path /actionblocks/server /actionblocks/server/* {
+	@actionblocks_server path /actionblocks/server /actionblocks/server/*
+	handle @actionblocks_server {
+		uri strip_prefix /actionblocks/server
 		reverse_proxy actionblocks-server:8080
 	}
 
