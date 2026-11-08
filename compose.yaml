@@ -23,7 +23,6 @@ services:
       - portfolio_network
       - wizard_website
       - wizard_api
-      - cloud_network
       - actionBlocks_website
       - actionBlocks_server
     pull_policy: never
@@ -80,11 +79,6 @@ networks:
     name: "wizard_website"
   wizard_api:
     name: "wizard_api"
-  cloud_network:
-    name: cloud_network
-    ipam:
-      config:
-        - subnet: 172.30.84.0/24
   actionBlocks_website:
     name: "actionBlocks_website"
   actionBlocks_server:
