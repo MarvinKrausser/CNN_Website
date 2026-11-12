@@ -18,7 +18,7 @@ async function downscale(file) {
         canvas.width = w;
         canvas.height = h;
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#fff'; // transparent PNGs would turn black as JPEG
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-canvas-fill').trim(); // transparent PNGs would turn black as JPEG
         ctx.fillRect(0, 0, w, h);
         ctx.drawImage(bitmap, 0, 0, w, h);
         bitmap.close();

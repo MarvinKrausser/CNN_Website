@@ -1,6 +1,6 @@
 .intro {
     max-width: 65ch;
-    font-size: 1.1rem;
+    font-size: var(--font-size-intro);
     margin: -10px 0 50px 0;
 }
 
@@ -21,33 +21,34 @@
 }
 
 .tile:hover {
-    border-color: var(--surface);
-    background: rgba(47, 168, 208, 0.08);
+    border-color: var(--color-hover);
+    background: var(--color-background-hover);
     transform: translateY(-3px);
 }
 
 .tag {
-    font-family: "Space Mono", monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.03em;
-    color: var(--surface);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-small);
+    line-height: var(--line-height-small);
+    letter-spacing: var(--letter-spacing-tag);
+    color: var(--color-font);
     text-transform: uppercase;
 }
 
 .tileTitle {
     margin: 0;
-    font-size: 1.7rem;
-    color: var(--text);
+    font-size: var(--font-size-tile-title);
+    color: var(--color-font);
 }
 
 .tileText {
     margin: 0;
-    color: var(--text-dim);
+    color: var(--color-font-dim);
     flex-grow: 1;
 }
 
 .cta {
     margin-top: 8px;
-    font-weight: bold;
-    color: var(--surface);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-interactable);
 }

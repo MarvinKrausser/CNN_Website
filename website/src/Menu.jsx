@@ -18,9 +18,10 @@ function Menu() {
     return (
         <nav id="navbar-main">
             <div id="navbar-inner">
-                <NavLink to="/" className="navbar-brand" onClick={() => setOpen(false)}>
+                <div className="navbar-brand">
+                    <img src="/typewriter_icon.svg" alt="" className="navbar-brand-icon" />
                     Marvin Krausser
-                </NavLink>
+                </div>
 
                 <button
                     id="navbar-toggle"

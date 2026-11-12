@@ -1,0 +1,27 @@
+/* Every colour used on the website is defined here. Do not use colour literals anywhere else. */
+:root {
+    /* Styleguide (styleguid.md) */
+    --color-background:           #260003;
+    --color-background-secondary: #6E0025;
+    --color-background-hover:     #8F0030;
+    --color-font:                 #fddae3;
+    --color-interactable:         #B88A99;
+    --color-hover:                #D6A1B3;
+    --color-not-interactable:     #635A5D;
+
+    /* Derived from styleguide */
+    --color-font-dim:      color-mix(in srgb, var(--color-font) 70%, transparent);
+    --color-line:          color-mix(in srgb, var(--color-interactable) 35%, transparent);
+    --color-glow-strong:   color-mix(in srgb, var(--color-background-secondary) 35%, transparent);
+    --color-glow-soft:     color-mix(in srgb, var(--color-background-secondary) 20%, transparent);
+    --color-navbar:        color-mix(in srgb, var(--color-background) 75%, transparent);
+    --color-navbar-mobile: color-mix(in srgb, var(--color-background) 97%, transparent);
+
+    /* Not covered by styleguide */
+    --color-transparent:   transparent;
+    --color-danger:        rgb(220, 70, 70);
+    --color-success:       rgb(110, 220, 140);
+    --color-error:         rgb(240, 110, 110);
+    --color-bbox:          red;  /* object detection boxes (canvas) */
+    --color-canvas-fill:   #fff; /* JPEG background for transparent uploads (canvas) */
+}

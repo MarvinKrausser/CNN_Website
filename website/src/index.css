@@ -1,30 +1,22 @@
 :root {
-    --surface: rgb(47, 168, 208);
-    --surface-dim: rgba(47, 168, 208, 0.15);
-    --surface-line: rgba(47, 168, 208, 0.35);
-    --bg: rgb(4, 0, 10);
-    --bg-elevated: rgb(13, 10, 22);
-    --text: rgb(255, 255, 255);
-    --text-dim: rgba(255, 255, 255, 0.68);
-    --accent-2: #c59eff;
     --radius: 16px;
     --nav-height: 70px;
     --page-pad: clamp(20px, 6vw, 100px);
 }
 
 html {
-    font-family: system-ui, -apple-system, sans-serif;
-    color: var(--text);
-    font-size: 1rem;
-    line-height: 1.7;
+    font-family: var(--font-body);
+    color: var(--color-font);
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
     -webkit-text-size-adjust: 100%;
 }
 
 body {
-    background: var(--bg);
+    background: var(--color-background);
     background-image:
-        radial-gradient(ellipse 900px 500px at 15% -10%, var(--surface-dim), transparent 60%),
-        radial-gradient(ellipse 700px 500px at 100% 10%, rgba(197, 158, 255, 0.08), transparent 55%);
+        radial-gradient(ellipse 900px 500px at 15% -10%, var(--color-glow-strong), var(--color-transparent) 60%),
+        radial-gradient(ellipse 700px 500px at 100% 10%, var(--color-glow-soft), var(--color-transparent) 55%);
     background-attachment: fixed;
     margin: 0;
     padding: 0;
@@ -33,26 +25,43 @@ body {
 }
 
 button {
-    font-size: 1rem;
+    font-size: var(--font-size-body);
     font-family: inherit;
 }
 
+button,
+textarea {
+    line-height: var(--line-height-control);
+}
+
 a {
-    color: var(--text);
+    color: var(--color-interactable);
 }
 
 h1,
 h2,
 h3,
 h4 {
-    font-family: 'Inter', system-ui, sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
+    font-family: var(--font-heading);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-heading);
+    line-height: var(--line-height-headline);
+}
+
+h2 {
+    font-size: var(--font-size-h2);
+}
+
+h3 {
+    font-size: var(--font-size-h3);
+}
+
+h4 {
+    font-size: var(--font-size-h4);
 }
 
 p {
-    color: var(--text-dim);
+    color: var(--color-font-dim);
 }
 
 * {
@@ -60,13 +69,13 @@ p {
 }
 
 *:focus-visible {
-    outline: 2px solid var(--accent-2);
+    outline: 2px solid var(--color-hover);
     outline-offset: 3px;
 }
 
 ::selection {
-    background: var(--surface);
-    color: black;
+    background: var(--color-interactable);
+    color: var(--color-background);
 }
 
 /* scrollbar theming */
@@ -76,36 +85,25 @@ p {
 }
 
 ::-webkit-scrollbar-track {
-    background: transparent;
+    background: var(--color-transparent);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--color-not-interactable);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--surface);
+    background: var(--color-hover);
 }
 
 .site-headline {
     margin: 0 0 clamp(24px, 5vw, 50px) 0;
-    color: var(--surface);
-    font-weight: bold;
-    font-size: clamp(2.2rem, 8vw, 4rem);
+    color: var(--color-font);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-headline);
     position: relative;
     width: fit-content;
-}
-
-.site-headline::before {
-    content: "";
-    position: absolute;
-    bottom: -6px;
-    left: 0;
-    height: 4px;
-    width: 100%;
-    border-radius: 20px;
-    background: var(--surface);
 }
 
 .site-box {
@@ -122,29 +120,29 @@ p {
 }
 
 .page-lead {
-    color: var(--text-dim);
-    font-size: 1.05rem;
+    color: var(--color-font-dim);
+    font-size: var(--font-size-page-lead);
     max-width: 70ch;
     margin: -10px 0 40px 0;
 }
 
 .card {
-    background: var(--bg-elevated);
-    border: 1px solid var(--surface-line);
+    background: var(--color-background-secondary);
+    border: 1px solid var(--color-line);
     border-radius: var(--radius);
     padding: clamp(20px, 3vw, 32px);
 }
 
 .custom-button {
-    font-size: 1rem;
-    font-weight: bold;
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
     height: 45px;
     padding: 10px 20px;
-    background: var(--surface);
-    color: rgb(0, 0, 0);
+    background: var(--color-interactable);
+    color: var(--color-background);
     cursor: pointer;
     border-radius: 20px;
-    border: 2px solid var(--surface);
+    border: 2px solid var(--color-interactable);
     user-select: none;
     display: flex;
     align-items: center;
@@ -153,17 +151,19 @@ p {
 }
 
 .custom-button:hover {
-    border-color: white;
-    color: white;
+    background: var(--color-hover);
+    border-color: var(--color-hover);
 }
 
 .custom-button.inactive {
-    opacity: 0.3;
+    background: var(--color-not-interactable);
+    border-color: var(--color-not-interactable);
     cursor: default;
-    color: black;
+    color: var(--color-background);
 }
 
 .custom-button.inactive:hover {
-    border-color: var(--surface);
-    color: black;
+    background: var(--color-not-interactable);
+    border-color: var(--color-not-interactable);
+    color: var(--color-background);
 }

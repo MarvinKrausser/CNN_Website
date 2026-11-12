@@ -5,10 +5,10 @@
     top: 0;
     left: 0;
     z-index: 100;
-    background: rgba(4, 0, 10, 0.75);
+    background: var(--color-navbar);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--surface-line);
+    border-bottom: 1px solid var(--color-line);
 }
 
 #navbar-inner {
@@ -23,18 +23,21 @@
 }
 
 .navbar-brand {
-    font-family: 'Inter', system-ui, sans-serif;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    font-size: 1.2rem;
-    text-decoration: none;
-    color: var(--text);
+    font-family: var(--font-heading);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-brand);
+    font-size: var(--font-size-brand);
+    color: var(--color-font);
     white-space: nowrap;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.navbar-brand:hover {
-    color: var(--surface);
+.navbar-brand-icon {
+    height: 40px;
+    width: 40px;
 }
 
 #navbar-links {
@@ -45,23 +48,23 @@
 
 .navbar-item {
     text-decoration: none;
-    color: var(--text-dim);
+    color: var(--color-font-dim);
     padding: 8px 16px;
     border-radius: 20px;
-    font-size: 1rem;
-    font-weight: bold;
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
     white-space: nowrap;
     transition: background-color 0.15s, color 0.15s;
 }
 
 .navbar-item:hover {
-    color: var(--text);
-    background-color: var(--surface-dim);
+    color: var(--color-font);
+    background-color: var(--color-line);
 }
 
 .navbar-item.active {
-    color: black;
-    background-color: var(--surface);
+    color: var(--color-background);
+    background-color: var(--color-interactable);
 }
 
 #navbar-toggle {
@@ -73,7 +76,7 @@
     width: 40px;
     height: 40px;
     padding: 0;
-    background: transparent;
+    background: var(--color-transparent);
     border: none;
     cursor: pointer;
     flex-shrink: 0;
@@ -83,7 +86,7 @@
 #navbar-toggle .bar {
     width: 22px;
     height: 2px;
-    background: var(--text);
+    background: var(--color-font);
     border-radius: 2px;
     transition: transform 0.2s ease, opacity 0.2s ease;
 }
@@ -113,9 +116,9 @@
         flex-direction: column;
         align-items: stretch;
         gap: 0;
-        background: rgba(4, 0, 10, 0.97);
+        background: var(--color-navbar-mobile);
         backdrop-filter: blur(10px);
-        border-bottom: 1px solid var(--surface-line);
+        border-bottom: 1px solid var(--color-line);
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.25s ease;
@@ -132,7 +135,7 @@
     }
 
     .navbar-item.active {
-        background-color: var(--surface-dim);
-        color: var(--surface);
+        background-color: var(--color-line);
+        color: var(--color-interactable);
     }
 }

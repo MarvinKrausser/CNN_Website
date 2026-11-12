@@ -21,23 +21,23 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    color: var(--text-dim);
-    font-size: 0.9rem;
+    color: var(--color-font-dim);
+    font-size: var(--font-size-label);
 }
 
 .field input {
     font: inherit;
-    font-size: 1rem;
-    color: var(--text);
-    background: var(--bg-elevated);
-    border: 1px solid var(--surface-line);
+    font-size: var(--font-size-body);
+    color: var(--color-font);
+    background: var(--color-background-secondary);
+    border: 1px solid var(--color-line);
     border-radius: 10px;
     padding: 10px 12px;
     min-width: 0;
 }
 
 .field input:focus {
-    outline: 2px solid var(--accent-2);
+    outline: 2px solid var(--color-hover);
     outline-offset: 1px;
 }
 
@@ -48,13 +48,19 @@
 }
 
 .buttons button:disabled {
-    opacity: 0.5;
+    background: var(--color-not-interactable);
+    border-color: var(--color-not-interactable);
     cursor: default;
 }
 
 .danger {
-    background: rgb(220, 70, 70);
-    border-color: rgb(220, 70, 70);
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+}
+
+.danger:hover {
+    background: var(--color-danger);
+    border-color: var(--color-hover);
 }
 
 .output {
@@ -71,22 +77,22 @@
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 10px;
-    font-weight: 600;
-    border-bottom: 1px solid var(--surface-line);
+    font-weight: var(--font-weight-bold);
+    border-bottom: 1px solid var(--color-line);
     padding-bottom: 8px;
 }
 
 .dim {
-    color: var(--text-dim);
-    font-weight: 400;
+    color: var(--color-font-dim);
+    font-weight: var(--font-weight-regular);
 }
 
 .ok {
-    color: rgb(110, 220, 140);
+    color: var(--color-success);
 }
 
 .fail {
-    color: rgb(240, 110, 110);
+    color: var(--color-error);
 }
 
 .table-wrap {
@@ -97,7 +103,7 @@
 .table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
+    font-size: var(--font-size-label);
 }
 
 .table th,
@@ -105,23 +111,24 @@
     text-align: left;
     vertical-align: top;
     padding: 8px 10px;
-    border-bottom: 1px solid var(--surface-dim);
+    border-bottom: 1px solid var(--color-line);
 }
 
 .table th {
-    color: var(--surface);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-font);
     white-space: nowrap;
 }
 
 .table td {
-    color: var(--text-dim);
+    color: var(--color-font-dim);
 }
 
 .table .text {
     min-width: 200px;
     white-space: pre-wrap;
     word-break: break-word;
-    color: var(--text);
+    color: var(--color-font);
 }
 
 .raw {
@@ -129,12 +136,12 @@
     max-height: 400px;
     overflow: auto;
     padding: 12px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--surface-line);
+    background: var(--color-background-secondary);
+    border: 1px solid var(--color-line);
     border-radius: 10px;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-code);
+    color: var(--color-font-dim);
     white-space: pre-wrap;
     word-break: break-word;
 }

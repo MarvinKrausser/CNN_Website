@@ -37,7 +37,7 @@ function Object_Detection() {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        ctx.strokeStyle = "red";
+        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-bbox').trim();
         ctx.lineWidth = 1;
 
         if (bboxes) {
