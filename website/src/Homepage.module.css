@@ -1,7 +1,31 @@
 .intro {
     max-width: 65ch;
     font-size: var(--font-size-intro);
-    margin: -10px 0 50px 0;
+    margin: -10px 0 0 0;
+}
+
+.hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 100px;
+}
+
+.heroText {
+    min-width: 0;
+}
+
+.heroIcon {
+    width: clamp(140px, 22vw, 240px);
+    height: auto;
+    flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+    .heroIcon {
+        display: none;
+    }
 }
 
 .grid {
@@ -17,11 +41,11 @@
     align-items: flex-start;
     gap: 10px;
     text-decoration: none;
-    transition: border-color 0.15s, transform 0.15s, background-color 0.15s;
+    border: none;
+    transition: transform 0.15s, background-color 0.15s;
 }
 
 .tile:hover {
-    border-color: var(--color-hover);
     background: var(--color-background-hover);
     transform: translateY(-3px);
 }

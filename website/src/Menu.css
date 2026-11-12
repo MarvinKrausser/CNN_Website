@@ -15,7 +15,7 @@
     max-width: 1200px;
     height: 100%;
     margin: 0 auto;
-    padding: 0 clamp(16px, 4vw, 40px);
+    padding: 0 var(--page-pad);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -50,7 +50,7 @@
     text-decoration: none;
     color: var(--color-font-dim);
     padding: 8px 16px;
-    border-radius: 20px;
+    border-radius: var(--radius);
     font-size: var(--font-size-body);
     font-weight: var(--font-weight-bold);
     white-space: nowrap;
@@ -87,7 +87,7 @@
     width: 22px;
     height: 2px;
     background: var(--color-font);
-    border-radius: 2px;
+    border-radius: var(--radius);
     transition: transform 0.2s ease, opacity 0.2s ease;
 }
 

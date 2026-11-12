@@ -31,7 +31,7 @@
     color: var(--color-font);
     background: var(--color-background-secondary);
     border: 1px solid var(--color-line);
-    border-radius: 10px;
+    border-radius: var(--radius);
     padding: 10px 12px;
     min-width: 0;
 }
@@ -138,7 +138,7 @@
     padding: 12px;
     background: var(--color-background-secondary);
     border: 1px solid var(--color-line);
-    border-radius: 10px;
+    border-radius: var(--radius);
     font-family: var(--font-mono);
     font-size: var(--font-size-code);
     color: var(--color-font-dim);

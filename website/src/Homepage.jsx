@@ -25,13 +25,19 @@ const projects = [
 function Homepage() {
     return (
         <div className='site-box'>
-            <h1 className='site-headline'>Marvin Krausser</h1>
+            <div className={styles.hero}>
+                <div className={styles.heroText}>
+                    <h1 className='site-headline'>Marvin Krausser</h1>
 
-            <p className={styles.intro}>
-                I build and deploy small machine learning projects end to end &mdash;
-                from training the model to serving it behind a live API. Below are a
-                couple of interactive demos, running on real models.
-            </p>
+                    <p className={styles.intro}>
+                        I build and deploy small machine learning projects end to end &mdash;
+                        from training the model to serving it behind a live API. Below are a
+                        couple of interactive demos, running on real models.
+                    </p>
+                </div>
+
+                <img src="/typewriter_icon.svg" alt="" className={styles.heroIcon} />
+            </div>
 
             <div className={styles.grid}>
                 {projects.map(({ to, title, description, tag }) => (

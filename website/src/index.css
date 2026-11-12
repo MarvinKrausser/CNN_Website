@@ -1,5 +1,5 @@
 :root {
-    --radius: 16px;
+    --radius: 0;
     --nav-height: 70px;
     --page-pad: clamp(20px, 6vw, 100px);
 }
@@ -22,6 +22,7 @@ body {
     padding: 0;
     min-height: 100vh;
     overflow-x: hidden;
+    display: flow-root; /* keep .site-box margins inside body so the page is not taller than its content */
 }
 
 button {
@@ -90,7 +91,7 @@ p {
 
 ::-webkit-scrollbar-thumb {
     background: var(--color-not-interactable);
-    border-radius: 10px;
+    border-radius: var(--radius);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -141,7 +142,7 @@ p {
     background: var(--color-interactable);
     color: var(--color-background);
     cursor: pointer;
-    border-radius: 20px;
+    border-radius: var(--radius);
     border: 2px solid var(--color-interactable);
     user-select: none;
     display: flex;

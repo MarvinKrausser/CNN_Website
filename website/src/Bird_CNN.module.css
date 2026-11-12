@@ -19,7 +19,7 @@
     height: 1.5px;
     width: 10px;
     background: var(--color-font);
-    border-radius: 8px;
+    border-radius: var(--radius);
     transform: translateY(-50%);
 }
 
@@ -74,7 +74,7 @@ a:hover {
 .image-box img {
     cursor: pointer;
     border: 2px solid var(--color-background);
-    border-Radius: 10px;
+    border-radius: var(--radius);
     user-select: none;
     height: auto;
     max-height: 400px;
